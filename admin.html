@@ -114,7 +114,6 @@
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <!-- Aceita arquivos XLSX, XLS e CSV diretamente do celular ou PC -->
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="importFromExcel(event)">
                     <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar Arquivo Excel (.XLSX)</button>
                     <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
@@ -299,7 +298,7 @@
             link.click();
         }
 
-        // Nova função moderna para importar arquivos XLSX diretamente do celular ou PC com segurança total
+        // Importador Inteligente de Excel (.xlsx / .csv): Identifica campos por conteúdo e tipo automaticamente
         function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -309,37 +308,74 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-
-                    // Pega a primeira aba da planilha do Excel
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
-
-                    // Converte os dados da planilha em uma lista JSON limpa
                     const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     
                     let imported = [];
-                    // Começa da linha 1 para pular o cabeçalho
                     for (let i = 1; i < jsonRows.length; i++) {
                         const cols = jsonRows[i];
                         if (!cols || cols.length === 0) continue;
 
-                        let id = cols[0] && String(cols[0]).startsWith('EB-') ? String(cols[0]) : `EB-100${i}`;
-                        let name = cols[1] ? String(cols[1]) : `Cliente ${i}`;
-                        let phone = cols[2] ? String(cols[2]).replace(/\D/g, '') : '';
-                        let ref = cols[3] ? String(cols[3]) : 'Direto';
-                        let points = cols[4] && !isNaN(cols[4]) ? parseInt(cols[4]) : 0;
-                        let days = cols[5] && !isNaN(cols[5]) ? parseInt(cols[5]) : 60;
-                        let finance = cols[6] ? String(cols[6]) : '';
-                        let notes = cols[7] ? String(cols[7]) : '';
+                        let id = `EB-100${i}`;
+                        let name = '';
+                        let phone = '';
+                        let ref = 'Direto';
+                        let points = 0;
+                        let days = 60;
+                        let finance = '';
+                        let notes = '';
 
-                        imported.push({ id: id, name: name, phone: phone, ref: ref, points: points, days: days, finance: finance, notes: notes });
+                        // Varre todas as colunas da linha do Excel e classifica o dado pelo padrão correto
+                        cols.forEach(val => {
+                            if (val === null || val === undefined) return;
+                            let strVal = String(val).trim();
+
+                            if (strVal.startsWith('EB-')) {
+                                id = strVal;
+                            } else if (strVal.replace(/\D/g, '').length >= 10 && strVal.replace(/\D/g, '').length <= 13) {
+                                // É um número de telefone com DDD válido
+                                phone = strVal.replace(/\D/g, '');
+                            } else if (!isNaN(strVal) && strVal !== '' && parseInt(strVal) <= 50 && points === 0 && !strVal.includes('119')) {
+                                // É o número de pontos (geralmente menor ou igual a 50)
+                                points = parseInt(strVal);
+                            } else if (!isNaN(strVal) && parseInt(strVal) > 50) {
+                                // É a quantidade de dias de validade
+                                days = parseInt(strVal);
+                            } else if (strVal.toLowerCase() === 'direto' || strVal.includes('[EB-')) {
+                                ref = strVal;
+                            } else if (!name && isNaN(strVal) && strVal.length > 2 && !strVal.toLowerCase().includes('pagou') && !strVal.toLowerCase().includes('dev')) {
+                                // Se não tem nome ainda e é texto puro, é o Nome da cliente
+                                name = strVal;
+                            } else if (!finance && (strVal.toLowerCase().includes('pagou') || strVal.toLowerCase().includes('dev') || strVal.toLowerCase().includes('pix') || strVal.toLowerCase().includes('adiantado'))) {
+                                finance = strVal;
+                            } else if (!notes && strVal.length > 0) {
+                                notes = strVal;
+                            }
+                        });
+
+                        // Fallback por ordem caso alguma coluna venha vazia
+                        if (!name && cols[1]) name = String(cols[1]);
+                        if (!phone && cols[2]) phone = String(cols[2]).replace(/\D/g, '');
+                        if (points === 0 && !isNaN(cols[4])) points = parseInt(cols[4]) || 0;
+
+                        imported.push({ 
+                            id: id, 
+                            name: name || `Cliente ${i}`, 
+                            phone: phone || '', 
+                            ref: ref || 'Direto', 
+                            points: points, 
+                            days: days, 
+                            finance: finance || '', 
+                            notes: notes || '' 
+                        });
                     }
 
                     if(imported.length > 0) {
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes foram importadas do seu arquivo XLSX para o painel!`);
+                        alert(`Sucesso! ${imported.length} clientes foram importadas corretamente com nomes e telefones alinhados!`);
                     } else {
                         alert("A planilha parece estar vazia ou fora do formato esperado.");
                     }
