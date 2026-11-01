@@ -34,6 +34,17 @@
             font-size: 22px;
             margin-bottom: 20px;
             font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .counter-badge {
+            background: #1a1d26;
+            border: 1px solid #e5c158;
+            color: #e5c158;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 20px;
         }
         /* Seção do Gráfico */
         .chart-box {
@@ -103,14 +114,21 @@
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
         .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
         
-        /* Tabela */
+        /* Tabela & Cadastro */
         .table-section {
             margin-top: 24px;
+            border-top: 1px solid #232733;
+            padding-top: 20px;
+        }
+        .table-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
             font-size: 13px;
         }
         th, td {
@@ -136,7 +154,10 @@
 <body>
 
     <div class="dashboard-container">
-        <div class="header-title">✨ Painel da Gestão - Designer Estilo Mary</div>
+        <div class="header-title">
+            <span>✨ Painel da Gestão - Designer Estilo Mary</span>
+            <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
+        </div>
 
         <!-- Gráfico de Barras de Atendimentos -->
         <div class="chart-box">
@@ -182,7 +203,9 @@
 
                 <label style="margin-top: 15px;">Ajustar Dias de Validade do Cartão:</label>
                 <div class="btn-group">
+                    <button class="btn btn-cyan" onclick="adjustDays(1)">+ 1 Dia</button>
                     <button class="btn btn-cyan" onclick="adjustDays(10)">+ 10 Dias</button>
+                    <button class="btn btn-coral" onclick="adjustDays(-1)">- 1 Dia</button>
                     <button class="btn btn-coral" onclick="adjustDays(-10)">- 10 Dias</button>
                 </div>
 
@@ -204,7 +227,10 @@
 
         <!-- Tabela de Clientes Cadastrados -->
         <div class="table-section">
-            <div class="section-title">Lista de Clientes Cadastrados</div>
+            <div class="table-header-row">
+                <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
+                <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova Cliente</button>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -235,6 +261,7 @@
     <script>
         let currentPoints = 1;
         let currentDays = 60;
+        let totalClients = 1;
 
         // Configuração do Gráfico de Barras de Atendimentos
         const ctx = document.getElementById('attendanceChart').getContext('2d');
@@ -268,12 +295,12 @@
             document.getElementById('tbPoints').innerText = currentPoints;
             document.getElementById('tbDays').innerText = currentDays;
             document.getElementById('validityDays').value = currentDays;
+            document.getElementById('totalClientsCount').innerText = totalClients;
         }
 
         function addPoints(pts) {
             currentPoints = Math.max(0, currentPoints + pts);
             updateDisplay();
-            // Alimenta o gráfico simulando novo atendimento
             if(pts > 0) {
                 attendanceChart.data.datasets[0].data[5] += 1;
                 attendanceChart.update();
@@ -297,6 +324,20 @@
         function deleteClient() {
             if(confirm("Deseja realmente eliminar esta cliente?")) {
                 alert("Cliente removida.");
+            }
+        }
+
+        function addNewClientPrompt() {
+            const name = prompt("Digite o nome da nova cliente:");
+            if(name) {
+                const phone = prompt("Digite o WhatsApp com DDD:", "119");
+                totalClients++;
+                document.getElementById('clientName').value = name;
+                document.getElementById('clientPhone').value = phone || "";
+                document.getElementById('clientId').value = "EB-100" + totalClients;
+                currentPoints = 0;
+                updateDisplay();
+                alert("Nova cliente cadastrada e pronta para lançamento!");
             }
         }
 
