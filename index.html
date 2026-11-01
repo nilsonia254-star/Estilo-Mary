@@ -12,106 +12,116 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #080808;
+            background-color: #050505;
             color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 12px;
+            padding: 10px;
         }
         .card-container {
-            background: linear-gradient(145deg, #121212, #1a1a1a);
+            background: #0d0d0d;
             border: 2px solid #e5c158;
-            border-radius: 20px;
+            border-radius: 24px;
             width: 100%;
-            max-width: 420px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(229, 193, 88, 0.25);
+            max-width: 400px;
+            padding: 22px;
+            box-shadow: 0 10px 35px rgba(229, 193, 88, 0.2);
         }
         .header {
             text-align: center;
-            margin-bottom: 18px;
-            border-bottom: 1px solid #333333;
-            padding-bottom: 15px;
+            margin-bottom: 16px;
         }
         .header h1 {
-            color: #ffffff;
-            font-size: 22px;
+            color: #f7e196;
+            font-size: 20px;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .header p {
-            color: #e5c158;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            color: #cccccc;
+            font-size: 13px;
         }
         .client-box {
-            background: #161616;
+            background: #141414;
             border: 1px solid #333333;
             border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 20px;
-            position: relative;
+            padding: 14px;
+            margin-bottom: 16px;
         }
         .client-box h2 {
-            font-size: 17px;
+            font-size: 16px;
             margin-bottom: 4px;
             color: #ffffff;
         }
         .client-box p {
             font-size: 13px;
             color: #aaaaaa;
+            margin-bottom: 8px;
         }
-        .points-badge {
-            margin-top: 10px;
-            display: inline-block;
-            background: rgba(229, 193, 88, 0.15);
-            color: #e5c158;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid rgba(229, 193, 88, 0.3);
+        .points-display {
+            font-size: 26px;
+            font-weight: bold;
+            color: #f7e196;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            margin-bottom: 4px;
+        }
+        .update-info {
+            font-size: 11px;
+            color: #888888;
         }
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 16px;
         }
         .stamp {
-            background: #141414;
+            background: #121212;
             border: 2px solid #333333;
-            border-radius: 12px;
-            height: 55px;
+            border-radius: 10px;
+            height: 58px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
-            color: #777777;
+            color: #888888;
         }
         .stamp.active {
-            background: linear-gradient(135deg, #800040, #b30059);
+            background: linear-gradient(135deg, #4d0026, #800040);
             border-color: #ff3399;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(179, 0, 89, 0.3);
+            box-shadow: 0 0 10px rgba(255, 51, 153, 0.3);
+        }
+        .total-box {
+            background: linear-gradient(135deg, #800040, #a10051);
+            border: 1px solid #ff3399;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 16px;
+            font-weight: bold;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(128, 0, 64, 0.4);
         }
         .info-section {
-            background: #141414;
+            background: #121212;
             border-radius: 12px;
-            padding: 14px;
-            font-size: 13px;
+            padding: 12px;
+            font-size: 12px;
             color: #cccccc;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px solid #222222;
+            line-height: 1.4;
         }
         .info-section p {
-            margin-bottom: 8px;
-            line-height: 1.4;
+            margin-bottom: 6px;
         }
         .info-section p:last-child {
             margin-bottom: 0;
@@ -119,35 +129,30 @@
         .btn {
             display: block;
             width: 100%;
-            padding: 14px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             text-align: center;
             text-decoration: none;
             font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 12px;
+            font-size: 13px;
+            margin-bottom: 10px;
             cursor: pointer;
             border: none;
-            transition: opacity 0.2s;
-        }
-        .btn:hover {
-            opacity: 0.9;
         }
         .btn-whatsapp {
-            background-color: #25d366;
+            background-color: #2ecc71;
             color: white;
-            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
         }
         .btn-indicate {
-            background-color: #1877f2;
+            background-color: #0088ff;
             color: white;
-            box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 136, 255, 0.25);
         }
         .footer-note {
             text-align: center;
             font-size: 11px;
-            color: #666666;
-            margin-top: 10px;
+            color: #777777;
         }
     </style>
 </head>
@@ -160,9 +165,10 @@
         </div>
 
         <div class="client-box">
-            <h2 id="nome-cliente">Olá, Natália! 👋</h2>
-            <p>Você ganhou +5 pontos em 31/10 🌟</p>
-            <div class="points-badge">💛 13 pontos acumulados</div>
+            <h2>Olá, Natália! 👋</h2>
+            <p>Você ganhou +5 pontos em 31/10 🎉</p>
+            <div class="points-display">13 pontos 💖</div>
+            <div class="update-info">Atualizado em 31/10/2026 - Válido até 14/11/2026</div>
         </div>
 
         <div class="stamps-grid">
@@ -178,17 +184,20 @@
             <div class="stamp">10</div>
         </div>
 
+        <div class="total-box">
+            TOTAL ACUMULADO &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 13 pts
+        </div>
+
         <div class="info-section">
-            <p>📍 <strong>Endereço do Estúdio:</strong> Rua Nova Aliança, nº 2B (Travessa da Agostiniana Chantal) - Jd. Nova Conquista</p>
-            <p>🎁 <strong>Regra do Cartão:</strong> Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)</p>
-            <p>⏳ <strong>Validade:</strong> Atualizado em 31/10/2026 - Válido até 14/11/2026</p>
+            <p>📍 <strong>Endereço do Estúdio:</strong><br>Rua Nova Aliança, nº 2B (Travessa da Agostiniana Chantal) - Jd. Nova Conquista</p>
+            <p>🎁 <strong>Regra do Cartão:</strong><br>Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)</p>
         </div>
 
         <a href="https://wa.me/5511967066029" class="btn btn-whatsapp" target="_blank">💬 Agende: WhatsApp (11) 96706-6029</a>
         <a href="https://wa.me/5511967066029?text=Quero%20indicar%20uma%20amiga!" class="btn btn-indicate" target="_blank">👥 Indique uma amiga e ganhe +5 pts</a>
         
         <div class="footer-note">
-            Trocou de celular? Guarde seu ID exclusivo para recuperar seus pontos.
+            📱 Toque nos links da mensagem para agendar ou indicar
         </div>
     </div>
 
