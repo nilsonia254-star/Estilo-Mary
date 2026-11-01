@@ -63,12 +63,13 @@
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
         
-        .validity-text { color: #A0A6B8; font-size: 11px; font-weight: 400; }
+        .validity-text { color: #A0A6B8; font-size: 11px; font-weight: 400; text-align: center; }
         
+        /* Grid de Selos Estilo Luxo com Formato de Ganho de Pontos */
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin: 20px 0;
         }
         
@@ -76,13 +77,15 @@
             background: #1A1A1A;
             border: 1px solid #2A2A2A;
             border-radius: 12px;
-            height: 52px;
+            height: 60px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: 700;
             font-size: 13px;
-            color: #A0A6B8;
+            color: #6C757D;
+            padding: 4px;
         }
         
         .stamp.active {
@@ -90,6 +93,13 @@
             border: 2px solid #C026D3;
             color: #FFFFFF;
             box-shadow: 0 0 12px rgba(192, 38, 211, 0.5);
+        }
+
+        .stamp-sub {
+            font-size: 9px;
+            color: #C026D3;
+            margin-top: 1px;
+            font-weight: 600;
         }
         
         .total-bar {
@@ -151,7 +161,7 @@
 
         <div class="welcome-box">
             <div class="welcome-name" id="displayName">Olá, Cliente! 👋</div>
-            <div class="welcome-status" id="displayMsg">Você ganhou pontos em atendimento recente 🎉</div>
+            <div class="welcome-status" id="displayMsg">Você acumulou pontos em atendimento recente 🎉</div>
             <div style="text-align: center;">
                 <div class="badge-points" id="displayBadge">0 pontos 💖</div>
             </div>
@@ -206,12 +216,12 @@
         const grid = document.getElementById('stampsGrid');
         grid.innerHTML = '';
         
-        // Renderização precisa: marca exatamente o número de pontos enviado pelo painel (ex: 1 ponto acende o 1, 3 pontos acendem até o 3)
+        // Renderiza os 10 quadradinhos: os ativos exibem o formato "+1", "+2", "+3" etc. indicando o ganho por atendimento
         for (let i = 1; i <= 10; i++) {
             const div = document.createElement('div');
             if (i <= clientPoints) {
                 div.className = 'stamp active';
-                div.innerText = i; // Mostra o número exato correspondente ao ponto ganho
+                div.innerHTML = `+${i}<span class="stamp-sub">Atend.</span>`;
             } else {
                 div.className = 'stamp';
                 div.innerText = i;
