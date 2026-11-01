@@ -98,7 +98,7 @@
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
                     <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 15px;">
-                    <button class="btn btn-gold" style="width: auto;" onclick="alert('Validade ajustada!')">Fixar Dias</button>
+                    <button class="btn btn-gold" style="width: auto;" onclick="saveValidityDays()">Fixar Dias</button>
                 </div>
                 <label style="margin-top: 15px; color: #ff6b6b;">Correção de Pontos:</label>
                 <div class="btn-group">
@@ -126,9 +126,16 @@
         </div>
     </div>
     <script>
-        let clientsList = [
+        // Carrega clientes salvos no celular ou usa a padrão se for o primeiro acesso
+        let savedClients = localStorage.getItem('mary_clients_list');
+        let clientsList = savedClients ? JSON.parse(savedClients) : [
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
+
+        function persistData() {
+            localStorage.setItem('mary_clients_list', JSON.stringify(clientsList));
+        }
+
         const weeklyReferrals = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], data: [1, 3, 2, 4, 5, 6] };
         const monthlyReferrals = { labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'], data: [8, 12, 15, 14, 20, 25, 18, 22, 28, 30, 19, 35] };
         const ctx = document.getElementById('referralChart').getContext('2d');
@@ -166,6 +173,7 @@
                 select.appendChild(opt);
             });
             document.getElementById('totalClientsCount').innerText = clientsList.length;
+            persistData();
         }
         let currentIndex = 0;
         function selectClientByIndex(index) {
@@ -176,7 +184,7 @@
             document.getElementById('clientName').value = c.name;
             document.getElementById('clientPhone').value = c.phone;
             document.getElementById('referredBy').value = c.ref;
-            document.getElementById('validityDays').value = c.days;
+            document.getElementById('validityDays').value = c.days || 60;
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
         }
@@ -201,9 +209,18 @@
         }
         function adjustDays(days) {
             if(clientsList.length > 0) {
-                clientsList[currentIndex].days = Math.max(0, clientsList[currentIndex].days + days);
+                clientsList[currentIndex].days = Math.max(0, (clientsList[currentIndex].days || 60) + days);
+                document.getElementById('validityDays').value = clientsList[currentIndex].days;
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
+            }
+        }
+        function saveValidityDays() {
+            if(clientsList.length > 0) {
+                const val = parseInt(document.getElementById('validityDays').value) || 60;
+                clientsList[currentIndex].days = val;
+                renderTableAndSelect();
+                alert("Validade de " + val + " dias fixada para esta cliente!");
             }
         }
         function saveClient() {
@@ -213,8 +230,9 @@
                 clientsList[currentIndex].ref = document.getElementById('referredBy').value || 'Direto';
                 clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
+                clientsList[currentIndex].days = parseInt(document.getElementById('validityDays').value) || 60;
                 renderTableAndSelect();
-                alert("Dados da cliente atualizados com sucesso!");
+                alert("Dados da cliente salvos com sucesso no celular!");
             }
         }
         function deleteClient() {
@@ -237,7 +255,7 @@
                 clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, finance: "", notes: "" });
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
-                alert("Nova cliente cadastrada com sucesso!");
+                alert("Nova cliente cadastrada e salva com sucesso!");
             }
         }
         function sendWhatsApp() {
@@ -250,7 +268,7 @@
                 if (!phoneClean.startsWith('55')) { phoneClean = '55' + phoneClean; }
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
                 
-                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days}`;
+                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days || 60}`;
                 const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
                 const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
                 window.open(waUrl, '_blank');
@@ -258,7 +276,7 @@
         }
         function exportToExcel() {
             let csv = '\uFEFFID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
-            clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.finance || ''}","${c.notes || ''}"\n`; });
+            clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days || 60},"${c.finance || ''}","${c.notes || ''}"\n`; });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
@@ -268,8 +286,6 @@
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
-
-            // Utiliza FileReader com suporte a codificação em lote para aceitar arquivos do celular (ISO-8859-1 / Windows-1252)
             const reader = new FileReader();
             reader.readAsText(file, 'ISO-8859-1');
             reader.onload = function(e) {
@@ -309,7 +325,7 @@
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas com sucesso do celular!`);
+                    alert(`${imported.length} clientes importadas e salvas com sucesso no celular!`);
                 } else { alert("Não foi possível ler os dados. Verifique o arquivo CSV."); }
             };
         }
