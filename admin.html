@@ -157,7 +157,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-            min-width: 700px;
+            min-width: 750px;
         }
         th, td {
             padding: 10px;
@@ -229,7 +229,10 @@
                 <label for="referredBy">Indicada por (Cliente / ID ou Direto):</label>
                 <input type="text" id="referredBy" placeholder="Ex: [EB-1001] Mariana ou Direto">
 
-                <label for="clientNotes">📝 Anotações sobre o Atendimento:</label>
+                <label for="clientFinanceNotes" style="color: #e5c158; font-weight: bold;">💰 Anotações Financeiras (Ex: Pagou Adiantado / Devendo):</label>
+                <textarea id="clientFinanceNotes" rows="2" placeholder="Ex: Pagou adiantado via Pix / Deve R$ 50,00..."></textarea>
+
+                <label for="clientNotes">📝 Observações Gerais / Atendimento:</label>
                 <textarea id="clientNotes" rows="2" placeholder="Ex: Prefere sobrancelha mais marcada..."></textarea>
 
                 <div class="btn-group" style="margin-top: 15px;">
@@ -290,7 +293,8 @@
                         <th>Indicada por</th>
                         <th>Pontos</th>
                         <th>Validade</th>
-                        <th>Anotações</th>
+                        <th>Financeiro / Devendo</th>
+                        <th>Ação</th>
                     </tr>
                 </thead>
                 <tbody id="clientTableBody">
@@ -301,7 +305,7 @@
 
     <script>
         let clientsList = [
-            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, notes: "Cliente VIP" }
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
         const weeklyReferrals = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], data: [1, 3, 2, 4, 5, 6] };
@@ -362,7 +366,8 @@
                     <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
                     <td>${client.points}/10</td>
                     <td>${client.days} dias</td>
-                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Anotações</button></td>
+                    <td style="color: #e5c158; font-size: 12px;">${client.finance || '-'}</td>
+                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>
                 `;
                 tbody.appendChild(tr);
 
@@ -386,6 +391,7 @@
             document.getElementById('clientPhone').value = c.phone;
             document.getElementById('referredBy').value = c.ref;
             document.getElementById('validityDays').value = c.days;
+            document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
         }
 
@@ -425,9 +431,10 @@
                 clientsList[currentIndex].name = document.getElementById('clientName').value;
                 clientsList[currentIndex].phone = document.getElementById('clientPhone').value;
                 clientsList[currentIndex].ref = document.getElementById('referredBy').value || 'Direto';
+                clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
                 renderTableAndSelect();
-                alert("Dados da cliente atualizados com sucesso!");
+                alert("Dados financeiros e informações da cliente atualizados com sucesso!");
             }
         }
 
@@ -452,7 +459,7 @@
                 const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
                 
                 const newId = "EB-100" + (clientsList.length + 1);
-                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, notes: "" });
+                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, finance: "", notes: "" });
                 
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
@@ -472,9 +479,9 @@
         }
 
         function exportToExcel() {
-            let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Anotacoes\n';
+            let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
             clientsList.forEach(c => {
-                csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.notes || ''}"\n`;
+                csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.finance || ''}","${c.notes || ''}"\n`;
             });
             
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -484,7 +491,7 @@
             link.click();
         }
 
-        // Leitura inteligente universal que captura Nome, Telefone, Pontos e Validade da planilha independente da ordem
+        // Importação inteligente garantindo a leitura correta dos pontos e dos novos campos financeiros
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -503,15 +510,16 @@
                     const cols = line.split(separator).map(c => c.replace(/^"|"$/g, '').trim());
 
                     if(cols.length >= 2) {
-                        let id = `EB-100${i}`;
+                        let id = cols[0] && cols[0].startsWith('EB-') ? cols[0] : `EB-100${i}`;
                         let name = '';
                         let phone = '';
                         let ref = 'Direto';
                         let points = 0;
                         let days = 60;
+                        let finance = '';
                         let notes = '';
 
-                        // Varre as colunas para identificar o que é o quê pelo formato do conteúdo
+                        // Varredura para mapear com segurança os campos corretos
                         cols.forEach(val => {
                             if (!val) return;
                             if (val.startsWith('EB-')) {
@@ -519,35 +527,38 @@
                             } else if (val.startsWith('(') || val.match(/^\d{10,11}$/) || (val.includes('11') && val.length <= 15 && !isNaN(val.replace(/\D/g,'')))) {
                                 phone = val;
                             } else if (!isNaN(val) && parseInt(val) <= 50 && points === 0) {
-                                // Se for um número baixo e pontos ainda for 0, pode ser os pontos
                                 points = parseInt(val);
                             } else if (!isNaN(val) && parseInt(val) > 50) {
-                                // Se for um número alto, pode ser a validade em dias
                                 days = parseInt(val);
                             } else if (val.toLowerCase() === 'direto' || val.includes('[EB-')) {
                                 ref = val;
                             } else if (!name && val.length > 2 && !val.includes('/')) {
                                 name = val;
+                            } else if (!finance && (val.toLowerCase().includes('pagou') || val.toLowerCase().includes('dev') || val.toLowerCase().includes('pix') || val.toLowerCase().includes('adiantado'))) {
+                                finance = val;
                             } else if (!notes && val.length > 0 && name && phone) {
                                 notes = val;
                             }
                         });
 
-                        // Fallback por posição padrão caso a varredura inteligente precise de reforço
+                        // Fallback por colunas da tabela exportada
                         if (!name && cols[1]) name = cols[1];
                         if (!phone && cols[2]) phone = cols[2];
                         if (!ref || ref.includes('/')) ref = cols[3] && !cols[3].includes('/') ? cols[3] : 'Direto';
                         if (points === 0 && !isNaN(cols[4])) points = parseInt(cols[4]) || 0;
                         if (days === 60 && !isNaN(cols[5])) days = parseInt(cols[5]) || 60;
+                        if (!finance && cols[6]) finance = cols[6];
+                        if (!notes && cols[7]) notes = cols[7];
 
                         imported.push({
-                            id: id || `EB-100${i}`,
+                            id: id,
                             name: name || `Cliente ${i}`,
                             phone: phone || '',
                             ref: ref || 'Direto',
                             points: points,
                             days: days,
-                            notes: notes || cols[6] || ''
+                            finance: finance || '',
+                            notes: notes || ''
                         });
                     }
                 }
@@ -556,7 +567,7 @@
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas com os dados e pontos corretos!`);
+                    alert(`${imported.length} clientes importadas com sucesso, incluindo os dados financeiros e pontos!`);
                 } else {
                     alert("Não foi possível ler os dados. Verifique o arquivo CSV.");
                 }
