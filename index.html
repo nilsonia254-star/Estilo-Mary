@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Designer Estilo Mary - Cartão Fidelidade Digital</title>
+    <title>Cartão Fidelidade - Designer Estilo Mary</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,205 +12,224 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #050505;
+            background-color: #0d0e12;
             color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 10px;
+            padding: 15px;
         }
         .card-container {
-            background: #0d0d0d;
-            border: 2px solid #e5c158;
-            border-radius: 24px;
             width: 100%;
-            max-width: 400px;
-            padding: 22px;
-            box-shadow: 0 10px 35px rgba(229, 193, 88, 0.2);
-        }
-        .header {
+            max-width: 420px;
+            background: #14161d;
+            border-radius: 20px;
+            padding: 24px;
+            border: 2px solid #e5c158;
+            box-shadow: 0 10px 30px rgba(229, 193, 88, 0.15);
             text-align: center;
-            margin-bottom: 16px;
         }
-        .header h1 {
-            color: #f7e196;
+        .brand-title {
+            color: #e5c158;
             font-size: 20px;
             font-weight: 700;
-            margin-bottom: 2px;
-        }
-        .header p {
-            color: #cccccc;
-            font-size: 13px;
-        }
-        .client-box {
-            background: #141414;
-            border: 1px solid #333333;
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-        .client-box h2 {
-            font-size: 16px;
             margin-bottom: 4px;
+        }
+        .brand-subtitle {
+            color: #a0a6b8;
+            font-size: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .welcome-box {
+            background: #1a1d26;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2e3d;
+            text-align: left;
+        }
+        .welcome-name {
             color: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
         }
-        .client-box p {
-            font-size: 13px;
-            color: #aaaaaa;
-            margin-bottom: 8px;
-        }
-        .points-display {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            color: #1a1a1a;
-            border: 1px solid #f9e79f;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 24px;
-            font-weight: 800;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 6px;
-            margin-bottom: 6px;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-        }
-        .update-info {
-            font-size: 11px;
-            color: #888888;
+        .welcome-status {
+            color: #a0a6b8;
+            font-size: 12px;
             margin-top: 4px;
         }
+        .points-display {
+            background: linear-gradient(135deg, #e5c158, #b89735);
+            color: #101217;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .points-number {
+            font-size: 32px;
+            font-weight: 800;
+        }
+        .points-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        /* Grid de quadradinhos dos pontos (1 a 10) */
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .stamp {
-            background: #121212;
-            border: 2px solid #333333;
+            background: #1a1d26;
+            border: 1px solid #2a2e3d;
             border-radius: 10px;
-            height: 58px;
+            height: 50px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            font-size: 14px;
+            justify-content: center;
             font-weight: bold;
-            color: #888888;
+            font-size: 14px;
+            color: #555c70;
         }
         .stamp.active {
-            background: linear-gradient(135deg, #4d0026, #800040);
-            border-color: #ff3399;
-            color: #ffffff;
-            box-shadow: 0 0 10px rgba(255, 51, 153, 0.3);
+            background: #14161d;
+            border-color: #e5c158;
+            color: #e5c158;
+            box-shadow: 0 0 10px rgba(229,193,88,0.3);
         }
         .total-box {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
-            color: #1a1a1a;
-            border: 1px solid #f9e79f;
-            border-radius: 12px;
-            padding: 14px;
-            text-align: center;
-            margin-bottom: 16px;
-            font-weight: 800;
-            font-size: 15px;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
-            text-transform: uppercase;
-        }
-        .info-section {
-            background: #121212;
+            background: #1a1d26;
+            border: 1px solid #e5c158;
             border-radius: 12px;
             padding: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #e5c158;
+        }
+        .info-box {
+            background: #1a1d26;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+            border: 1px solid #2a2e3d;
             font-size: 12px;
-            color: #cccccc;
-            margin-bottom: 16px;
-            border: 1px solid #222222;
-            line-height: 1.4;
+            color: #a0a6b8;
+            line-height: 1.5;
         }
-        .info-section p {
-            margin-bottom: 6px;
+        .info-box strong {
+            color: #ffffff;
+            display: block;
+            margin-bottom: 4px;
         }
-        .info-section p:last-child {
-            margin-bottom: 0;
-        }
-        .btn {
+        .btn-action {
             display: block;
             width: 100%;
             padding: 12px;
-            border-radius: 10px;
-            text-align: center;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 14px;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 13px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-whatsapp {
-            background-color: #2ecc71;
-            color: white;
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
-        }
-        .btn-indicate {
-            background-color: #0088ff;
-            color: white;
-            box-shadow: 0 4px 12px rgba(0, 136, 255, 0.25);
-        }
-        .footer-note {
             text-align: center;
+            margin-bottom: 10px;
+            transition: opacity 0.2s;
+        }
+        .btn-action:hover { opacity: 0.9; }
+        .btn-whatsapp { background: #2ecc71; color: #ffffff; }
+        .btn-referral { background: #0088ff; color: #ffffff; }
+        .footer-note {
             font-size: 11px;
-            color: #777777;
+            color: #6c757d;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
     <div class="card-container">
-        <div class="header">
-            <h1>✨ Designer Estilo Mary ✨</h1>
-            <p>Cartão Fidelidade Digital</p>
+        <div class="brand-title">✨ Designer Estilo Mary ✨</div>
+        <div class="brand-subtitle">Cartão Fidelidade Digital</div>
+
+        <div class="welcome-box">
+            <div class="welcome-name" id="displayName">Olá, Cliente! 💖</div>
+            <div class="welcome-status" id="displayStatus">Acompanhe seus pontos e benefícios abaixo.</div>
         </div>
 
-        <div class="client-box">
-            <h2>Olá, Natália! 👋</h2>
-            <p>Você ganhou +5 pontos em 31/10 🎉</p>
-            <div class="points-display">13 pontos 💖</div>
-            <div class="update-info">Atualizado em 31/10/2026 - Válido até 14/11/2026</div>
+        <div class="points-display">
+            <div class="points-number" id="displayPointsNum">0</div>
+            <div class="points-label">Pontos Acumulados</div>
         </div>
 
-        <div class="stamps-grid">
-            <div class="stamp active">+5</div>
-            <div class="stamp active">+3</div>
-            <div class="stamp active">+5</div>
-            <div class="stamp">4</div>
-            <div class="stamp">5</div>
-            <div class="stamp">6</div>
-            <div class="stamp">7</div>
-            <div class="stamp">8</div>
-            <div class="stamp">9</div>
-            <div class="stamp">10</div>
+        <!-- 10 quadradinhos dos pontos -->
+        <div class="stamps-grid" id="stampsGrid">
+            <!-- Gerado via JavaScript -->
         </div>
 
         <div class="total-box">
-            TOTAL ACUMULADO &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 13 PTS
+            <span>TOTAL ACUMULADO</span>
+            <span id="totalPointsText">0 PTS</span>
         </div>
 
-        <div class="info-section">
-            <p>📍 <strong>Endereço do Estúdio:</strong><br>Rua Nova Aliança, nº 2B (Travessa da Agostiniana Chantal) - Jd. Nova Conquista</p>
-            <p>🎁 <strong>Regra do Cartão:</strong><br>Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)</p>
+        <div class="info-box">
+            <strong>📍 Endereço do Estúdio:</strong>
+            Rua Nova Aliança, nº 2B (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
         </div>
 
-        <!-- Botão verde: Cliente fala direto com a Mariana -->
-        <a href="https://wa.me/5511967066029?text=Olá%20Mariana!%20Vim%20pelo%20meu%20cartão%20fidelidade%20e%20gostaria%20de%20agendar%20um%20horário." class="btn btn-whatsapp" target="_blank">💬 Agende: WhatsApp (11) 96706-6029</a>
-        
-        <!-- Botão azul: Cliente indica uma amiga (com o novo link do repositório Estilo-Mary) -->
-        <a href="https://api.whatsapp.com/send?text=Amiga%2C%20estou%20te%20indicando%20o%20trabalho%20da%20Designer%20Estilo%20Mary!%20%F0%9F%92%96%20Ao%20ser%20atendida%2C%20voc%C3%AA%20ainda%20ganha%20pontos%20que%20s%C3%A3o%20somados%20para%20descontos%20nos%20procedimentos.%20D%C3%AA%20uma%20olhada%20no%20cart%C3%A3o%20fidelidade%20e%20agende%20seu%20hor%C3%A1rio%3A%20https%3A%2F%2Fnilsonia254-star.github.io%2FEstilo-Mary%2F" class="btn btn-indicate" target="_blank">👥 Indique uma amiga e ganhe +5 pts</a>
-        
-        <div class="footer-note">
-            📱 Toque nos botões acima para agendar ou indicar
+        <div class="info-box">
+            <strong>🎁 Regra do Cartão:</strong>
+            Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)
         </div>
+
+        <a href="https://wa.me/5511967066029?text=Olá%20Mary!%20Gostaria%20de%20agendar%20um%20horário." class="btn-action btn-whatsapp" target="_blank">
+            💬 Agendar: WhatsApp (11) 9670-66029
+        </a>
+
+        <a href="#" id="btnReferral" class="btn-action btn-referral" onclick="shareReferral(event)">
+            👥 Indique uma amiga e ganhe pontos
+        </a>
+
+        <div class="footer-note">Toque nos botões acima para agendar ou indicar</div>
     </div>
 
+    <script>
+        // Pega os dados direto do link enviado pelo painel (Ex: ?nome=Maria&id=EB-1002&pontos=5)
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientName = urlParams.get('nome') || 'Cliente';
+        const clientId = urlParams.get('id') || 'EB-1001';
+        let clientPoints = parseInt(urlParams.get('pontos')) || 0;
+
+        // Atualiza os textos na tela com os dados reais
+        document.getElementById('displayName').innerText = `Olá, ${clientName}! 💖`;
+        document.getElementById('displayPointsNum').innerText = clientPoints;
+        document.getElementById('totalPointsText').innerText = `${clientPoints} PTS`;
+        document.getElementById('displayStatus').innerText = `ID do Cartão: ${clientId} • Atualizado hoje`;
+
+        // Desenha os 10 quadradinhos de pontos e acende os que a cliente já conquistou
+        const grid = document.getElementById('stampsGrid');
+        for (let i = 1; i <= 10; i++) {
+            const div = document.createElement('div');
+            div.className = `stamp ${i <= clientPoints ? 'active' : ''}`;
+            div.innerText = i <= clientPoints ? '✓' : i;
+            grid.appendChild(div);
+        }
+
+        // Função para a cliente indicar amigas usando o link personalizado dela
+        function shareReferral(e) {
+            e.preventDefault();
+            const referralLink = `https://nilsonia254-star.github.io/Estilo-Mary/?indica=${clientId}`;
+            const text = `Olá! Conheci o espaço Designer Estilo Mary através da ${clientName} e quero agendar meu horário! Meu link de indicação é: ${referralLink}`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+    </script>
 </body>
 </html>
