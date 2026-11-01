@@ -404,6 +404,8 @@
 
         function addPoints(pts) {
             if(clientsList.length > 0) {
+                // Atualiza em tempo real o nome que estiver digitado na caixinha
+                clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
@@ -434,7 +436,7 @@
                 clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
                 renderTableAndSelect();
-                alert("Dados financeiros e informações da cliente atualizados com sucesso!");
+                alert("Dados da cliente atualizados com sucesso!");
             }
         }
 
@@ -467,25 +469,29 @@
             }
         }
 
-        // Função de envio corrigida para abrir o WhatsApp corretamente sem erro 404
+        // Função corrigida para enviar os dados REAIS da cliente selecionada (Nome, ID e Pontos corretos)
         function sendWhatsApp() {
             if(clientsList.length > 0) {
+                // Pega os dados direto dos campos atuais da tela para garantir que o que foi alterado seja enviado
+                const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 const c = clientsList[currentIndex];
-                if (!c.phone) {
+                const phoneInput = document.getElementById('clientPhone').value || c.phone;
+                
+                if (!phoneInput) {
                     alert("Esta cliente não possui número de WhatsApp cadastrado!");
                     return;
                 }
                 
-                // Limpa o telefone deixando apenas números
-                let phoneClean = c.phone.replace(/\D/g, '');
+                let phoneClean = phoneInput.replace(/\D/g, '');
                 if (!phoneClean.startsWith('55')) {
                     phoneClean = '55' + phoneClean;
                 }
 
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-                const fullLink = `${baseUrl}?nome=${encodeURIComponent(c.name)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
+                // Envia exatamente o nome e os pontos corretos atualizados no painel
+                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
                 
-                const msg = `Olá ${c.name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
+                const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
                 
                 const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
                 window.open(waUrl, '_blank');
