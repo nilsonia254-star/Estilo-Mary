@@ -4,131 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Gestão - Designer Estilo Mary</title>
-    <!-- Chart.js para o Gráfico de Barras -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #0d0e12;
-            color: #ffffff;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .dashboard-container {
-            width: 100%;
-            max-width: 950px;
-            background: #14161d;
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid #232733;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .header-title {
-            color: #e5c158;
-            font-size: 22px;
-            margin-bottom: 20px;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .counter-badge {
-            background: #1a1d26;
-            border: 1px solid #e5c158;
-            color: #e5c158;
-            font-size: 13px;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
-        .chart-box {
-            background: #1a1d26;
-            border: 1px solid #2a2e3d;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 24px;
-            height: 280px;
-            position: relative;
-        }
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .chart-toggle-btn {
-            background: #101217;
-            border: 1px solid #2a2e3d;
-            color: #a0a6b8;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .chart-toggle-btn.active {
-            background: #0088ff;
-            color: #ffffff;
-            font-weight: bold;
-            border-color: #0088ff;
-        }
-        .grid-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .grid-layout { grid-template-columns: 1fr; }
-        }
-        .section-title {
-            color: #e5c158;
-            font-size: 15px;
-            font-weight: bold;
-            margin-bottom: 12px;
-        }
-        label {
-            display: block;
-            font-size: 12px;
-            color: #a0a6b8;
-            margin-bottom: 4px;
-            margin-top: 8px;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 8px;
-            background: #101217;
-            border: 1px solid #2a2e3d;
-            color: #ffffff;
-            font-size: 13px;
-            outline: none;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #e5c158;
-        }
-        .btn-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 10px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            transition: opacity 0.2s;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d0e12; color: #ffffff; padding: 20px; display: flex; justify-content: center; }
+        .dashboard-container { width: 100%; max-width: 950px; background: #14161d; border-radius: 16px; padding: 24px; border: 1px solid #232733; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .header-title { color: #e5c158; font-size: 22px; margin-bottom: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .counter-badge { background: #1a1d26; border: 1px solid #e5c158; color: #e5c158; font-size: 13px; padding: 6px 12px; border-radius: 20px; }
+        .chart-box { background: #1a1d26; border: 1px solid #2a2e3d; border-radius: 12px; padding: 16px; margin-bottom: 24px; height: 280px; position: relative; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .chart-toggle-btn { background: #101217; border: 1px solid #2a2e3d; color: #a0a6b8; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        .chart-toggle-btn.active { background: #0088ff; color: #ffffff; font-weight: bold; border-color: #0088ff; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+        .section-title { color: #e5c158; font-size: 15px; font-weight: bold; margin-bottom: 12px; }
+        label { display: block; font-size: 12px; color: #a0a6b8; margin-bottom: 4px; margin-top: 8px; }
+        input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 13px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #e5c158; }
+        .btn-group { display: flex; gap: 8px; margin-top: 8px; }
+        .btn { border: none; border-radius: 8px; padding: 10px; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.9; }
         .btn-gold { background: #e5c158; color: #101217; flex: 1; }
         .btn-cyan { background: #00d2d3; color: #101217; flex: 1; }
@@ -138,63 +32,21 @@
         .btn-import { background: #8e44ad; color: #ffffff; padding: 6px 12px; font-size: 12px; }
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
         .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
-        
-        .table-section {
-            margin-top: 24px;
-            border-top: 1px solid #232733;
-            padding-top: 20px;
-            overflow-x: auto;
-        }
-        .table-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            min-width: 750px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #232733;
-        }
-        th {
-            color: #a0a6b8;
-            font-weight: 600;
-        }
-        .btn-notes {
-            background: #f39c12;
-            color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .badge-ref {
-            background: #0088ff22;
-            color: #0088ff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            border: 1px solid #0088ff44;
-        }
+        .table-section { margin-top: 24px; border-top: 1px solid #232733; padding-top: 20px; overflow-x: auto; }
+        .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 750px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #232733; }
+        th { color: #a0a6b8; font-weight: 600; }
+        .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
     </style>
 </head>
 <body>
-
     <div class="dashboard-container">
         <div class="header-title">
             <span>✨ Painel da Gestão - Designer Estilo Mary</span>
             <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
         </div>
-
         <div class="chart-box">
             <div class="chart-header">
                 <span style="font-size: 14px; font-weight: bold; color: #0088ff;">👥 Pessoas que Vieram por Indicação</span>
@@ -203,56 +55,39 @@
                     <button id="btnMonthly" class="chart-toggle-btn" onclick="switchChart('monthly')">Mensal</button>
                 </div>
             </div>
-            <div style="height: 210px;">
-                <canvas id="referralChart"></canvas>
-            </div>
+            <div style="height: 210px;"><canvas id="referralChart"></canvas></div>
         </div>
-
         <div class="grid-layout">
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
-                
                 <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 12px; font-size: 14px; padding: 12px;">➕ Cadastrar Nova Cliente Aqui</button>
-
                 <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
-                <select id="selectClient" onchange="loadClientFromSelect()">
-                    <option value="">-- Selecione uma cliente --</option>
-                </select>
-
+                <select id="selectClient" onchange="loadClientFromSelect()"><option value="">-- Selecione uma cliente --</option></select>
                 <label for="clientId">ID do Cliente:</label>
                 <input type="text" id="clientId" value="EB-1001" readonly>
-
                 <label for="clientName">Nome Completo da Cliente:</label>
                 <input type="text" id="clientName" placeholder="Nome da cliente">
-
                 <label for="clientPhone">WhatsApp com DDD:</label>
                 <input type="text" id="clientPhone" placeholder="11987654321">
-
                 <label for="referredBy">Indicada por (Cliente / ID ou Direto):</label>
                 <input type="text" id="referredBy" placeholder="Ex: [EB-1001] Mariana ou Direto">
-
                 <label for="clientFinanceNotes" style="color: #e5c158; font-weight: bold;">💰 Anotações Financeiras (Ex: Pagou Adiantado / Devendo):</label>
                 <textarea id="clientFinanceNotes" rows="2" placeholder="Ex: Pagou adiantado via Pix / Deve R$ 50,00..."></textarea>
-
                 <label for="clientNotes">📝 Observações Gerais / Atendimento:</label>
                 <textarea id="clientNotes" rows="2" placeholder="Ex: Prefere sobrancelha mais marcada..."></textarea>
-
                 <div class="btn-group" style="margin-top: 15px;">
                     <button class="btn btn-green" onclick="saveClient()">💾 Salvar / Atualizar</button>
                     <button class="btn btn-red" onclick="deleteClient()">🗑️ Eliminar Cliente</button>
                 </div>
             </div>
-
             <div>
                 <div class="section-title">Lançar Pontos & Validade do Cartão</div>
-
                 <label>Adicionar Pontos:</label>
                 <div class="btn-group">
                     <button class="btn btn-gold" onclick="addPoints(1)">+ 1 Ponto</button>
                     <button class="btn btn-gold" onclick="addPoints(3)">+ 3 Pontos</button>
                     <button class="btn btn-gold" onclick="addPoints(5)">+ 5 Pontos</button>
                 </div>
-
                 <label style="margin-top: 15px;">Ajustar Dias de Validade do Cartão:</label>
                 <div class="btn-group">
                     <button class="btn btn-cyan" onclick="adjustDays(1)">+ 1 Dia</button>
@@ -260,22 +95,18 @@
                     <button class="btn btn-coral" onclick="adjustDays(-1)">- 1 Dia</button>
                     <button class="btn btn-coral" onclick="adjustDays(-10)">- 10 Dias</button>
                 </div>
-
                 <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
                     <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 15px;">
                     <button class="btn btn-gold" style="width: auto;" onclick="alert('Validade ajustada!')">Fixar Dias</button>
                 </div>
-
                 <label style="margin-top: 15px; color: #ff6b6b;">Correção de Pontos:</label>
                 <div class="btn-group">
                     <button class="btn btn-coral" onclick="addPoints(-1)">- 1 Ponto</button>
                     <button class="btn btn-coral" onclick="resetPoints()">🔄 Zerar Cartão</button>
                 </div>
-
                 <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
             </div>
         </div>
-
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
@@ -287,56 +118,24 @@
             </div>
             <table>
                 <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome</th>
-                        <th>WhatsApp</th>
-                        <th>Indicada por</th>
-                        <th>Pontos</th>
-                        <th>Validade</th>
-                        <th>Financeiro / Devendo</th>
-                        <th>Ação</th>
-                    </tr>
+                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada por</th><th>Pontos</th><th>Validade</th><th>Financeiro / Devendo</th><th>Ação</th></tr>
                 </thead>
-                <tbody id="clientTableBody">
-                </tbody>
+                <tbody id="clientTableBody"></tbody>
             </table>
         </div>
     </div>
-
     <script>
         let clientsList = [
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
-
         const weeklyReferrals = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], data: [1, 3, 2, 4, 5, 6] };
         const monthlyReferrals = { labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'], data: [8, 12, 15, 14, 20, 25, 18, 22, 28, 30, 19, 35] };
-
         const ctx = document.getElementById('referralChart').getContext('2d');
         const referralChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: weeklyReferrals.labels,
-                datasets: [{
-                    label: 'Indicações Recebidas',
-                    data: weeklyReferrals.data,
-                    backgroundColor: 'rgba(0, 136, 255, 0.8)',
-                    borderColor: '#0088ff',
-                    borderWidth: 1,
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } },
-                    y: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' }, beginAtZero: true }
-                }
-            }
+            data: { labels: weeklyReferrals.labels, datasets: [{ label: 'Indicações Recebidas', data: weeklyReferrals.data, backgroundColor: 'rgba(0, 136, 255, 0.8)', borderColor: '#0088ff', borderWidth: 1, borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' }, beginAtZero: true } } }
         });
-
         function switchChart(view) {
             if(view === 'weekly') {
                 document.getElementById('btnWeekly').classList.add('active');
@@ -351,38 +150,23 @@
             }
             referralChart.update();
         }
-
         function renderTableAndSelect() {
             const tbody = document.getElementById('clientTableBody');
             const select = document.getElementById('selectClient');
             tbody.innerHTML = '';
             select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
-
             clientsList.forEach((client, index) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${client.id}</td>
-                    <td>${client.name}</td>
-                    <td>${client.phone || '-'}</td>
-                    <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
-                    <td>${client.points}/10</td>
-                    <td>${client.days} dias</td>
-                    <td style="color: #e5c158; font-size: 12px;">${client.finance || '-'}</td>
-                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>
-                `;
+                tr.innerHTML = `<td>${client.id}</td><td>${client.name}</td><td>${client.phone || '-'}</td><td><span class="badge-ref">${client.ref || 'Direto'}</span></td><td>${client.points}/10</td><td>${client.days} dias</td><td style="color: #e5c158; font-size: 12px;">${client.finance || '-'}</td><td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>`;
                 tbody.appendChild(tr);
-
                 const opt = document.createElement('option');
                 opt.value = index;
                 opt.text = `[${client.id}] ${client.name} (${client.points}/10 pts)`;
                 select.appendChild(opt);
             });
-
             document.getElementById('totalClientsCount').innerText = clientsList.length;
         }
-
         let currentIndex = 0;
-
         function selectClientByIndex(index) {
             currentIndex = index;
             const c = clientsList[index];
@@ -395,14 +179,10 @@
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
         }
-
         function loadClientFromSelect() {
             const index = document.getElementById('selectClient').value;
-            if (index !== "") {
-                selectClientByIndex(parseInt(index));
-            }
+            if (index !== "") { selectClientByIndex(parseInt(index)); }
         }
-
         function addPoints(pts) {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
@@ -411,7 +191,6 @@
                 selectClientByIndex(currentIndex);
             }
         }
-
         function resetPoints() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].points = 0;
@@ -419,7 +198,6 @@
                 selectClientByIndex(currentIndex);
             }
         }
-
         function adjustDays(days) {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].days = Math.max(0, clientsList[currentIndex].days + days);
@@ -427,7 +205,6 @@
                 selectClientByIndex(currentIndex);
             }
         }
-
         function saveClient() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value;
@@ -439,7 +216,6 @@
                 alert("Dados da cliente atualizados com sucesso!");
             }
         }
-
         function deleteClient() {
             if(clientsList.length > 1) {
                 if(confirm("Deseja realmente eliminar esta cliente?")) {
@@ -449,113 +225,73 @@
                     selectClientByIndex(0);
                     alert("Cliente removida.");
                 }
-            } else {
-                alert("Você não pode excluir a última cliente restante.");
-            }
+            } else { alert("Você não pode excluir a última cliente restante."); }
         }
-
         function addNewClientPrompt() {
             const name = prompt("Digite o nome da nova cliente:");
             if(name) {
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
                 const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
-                
                 const newId = "EB-100" + (clientsList.length + 1);
                 clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, finance: "", notes: "" });
-                
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
-                alert("Nova cliente cadastrada com sucesso! Ela já está selecionada para você gerenciar os pontos.");
+                alert("Nova cliente cadastrada com sucesso!");
             }
         }
-
         function sendWhatsApp() {
             if(clientsList.length > 0) {
                 const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 const c = clientsList[currentIndex];
                 const phoneInput = document.getElementById('clientPhone').value || c.phone;
-                
-                if (!phoneInput) {
-                    alert("Esta cliente não possui número de WhatsApp cadastrado!");
-                    return;
-                }
-                
+                if (!phoneInput) { alert("Esta cliente não possui número de WhatsApp cadastrado!"); return; }
                 let phoneClean = phoneInput.replace(/\D/g, '');
-                if (!phoneClean.startsWith('55')) {
-                    phoneClean = '55' + phoneClean;
-                }
-
+                if (!phoneClean.startsWith('55')) { phoneClean = '55' + phoneClean; }
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
                 
+                // Passa o nome, ID, pontos e os dias de validade corretos configurados no painel
+                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days}`;
                 const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
-                
                 const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
                 window.open(waUrl, '_blank');
             }
         }
-
         function exportToExcel() {
             let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
-            clientsList.forEach(c => {
-                csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.finance || ''}","${c.notes || ''}"\n`;
-            });
-            
+            clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.finance || ''}","${c.notes || ''}"\n`; });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             link.href = URL.createObjectURL(blob);
             link.download = `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
-
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
                 const lines = text.split(/\r\n|\n/);
                 let imported = [];
-
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if(!line) continue;
-                    
                     const separator = line.includes(';') ? ';' : ',';
                     const cols = line.split(separator).map(c => c.replace(/^"|"$/g, '').trim());
-
                     if(cols.length >= 2) {
                         let id = cols[0] && cols[0].startsWith('EB-') ? cols[0] : `EB-100${i}`;
-                        let name = '';
-                        let phone = '';
-                        let ref = 'Direto';
-                        let points = 0;
-                        let days = 60;
-                        let finance = '';
-                        let notes = '';
-
+                        let name = ''; let phone = ''; let ref = 'Direto'; let points = 0; let days = 60; let finance = ''; let notes = '';
                         cols.forEach(val => {
                             if (!val) return;
-                            if (val.startsWith('EB-')) {
-                                id = val;
-                            } else if (val.startsWith('(') || val.match(/^\d{10,11}$/) || (val.includes('11') && val.length <= 15 && !isNaN(val.replace(/\D/g,'')))) {
-                                phone = val;
-                            } else if (!isNaN(val) && parseInt(val) <= 50 && points === 0) {
-                                points = parseInt(val);
-                            } else if (!isNaN(val) && parseInt(val) > 50) {
-                                days = parseInt(val);
-                            } else if (val.toLowerCase() === 'direto' || val.includes('[EB-')) {
-                                ref = val;
-                            } else if (!name && val.length > 2 && !val.includes('/')) {
-                                name = val;
-                            } else if (!finance && (val.toLowerCase().includes('pagou') || val.toLowerCase().includes('dev') || val.toLowerCase().includes('pix') || val.toLowerCase().includes('adiantado'))) {
-                                finance = val;
-                            } else if (!notes && val.length > 0 && name && phone) {
-                                notes = val;
-                            }
+                            if (val.startsWith('EB-')) { id = val; }
+                            else if (val.startsWith('(') || val.match(/^\d{10,11}$/) || (val.includes('11') && val.length <= 15 && !isNaN(val.replace(/\D/g,'')))) { phone = val; }
+                            else if (!isNaN(val) && parseInt(val) <= 50 && points === 0) { points = parseInt(val); }
+                            else if (!isNaN(val) && parseInt(val) > 50) { days = parseInt(val); }
+                            else if (val.toLowerCase() === 'direto' || val.includes('[EB-')) { ref = val; }
+                            else if (!name && val.length > 2 && !val.includes('/')) { name = val; }
+                            else if (!finance && (val.toLowerCase().includes('pagou') || val.toLowerCase().includes('dev') || val.toLowerCase().includes('pix') || val.toLowerCase().includes('adiantado'))) { finance = val; }
+                            else if (!notes && val.length > 0 && name && phone) { notes = val; }
                         });
-
                         if (!name && cols[1]) name = cols[1];
                         if (!phone && cols[2]) phone = cols[2];
                         if (!ref || ref.includes('/')) ref = cols[3] && !cols[3].includes('/') ? cols[3] : 'Direto';
@@ -563,32 +299,18 @@
                         if (days === 60 && !isNaN(cols[5])) days = parseInt(cols[5]) || 60;
                         if (!finance && cols[6]) finance = cols[6];
                         if (!notes && cols[7]) notes = cols[7];
-
-                        imported.push({
-                            id: id,
-                            name: name || `Cliente ${i}`,
-                            phone: phone || '',
-                            ref: ref || 'Direto',
-                            points: points,
-                            days: days,
-                            finance: finance || '',
-                            notes: notes || ''
-                        });
+                        imported.push({ id: id, name: name || `Cliente ${i}`, phone: phone || '', ref: ref || 'Direto', points: points, days: days, finance: finance || '', notes: notes || '' });
                     }
                 }
-
                 if(imported.length > 0) {
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
                     alert(`${imported.length} clientes importadas com sucesso!`);
-                } else {
-                    alert("Não foi possível ler os dados. Verifique o arquivo CSV.");
-                }
+                } else { alert("Não foi possível ler os dados. Verifique o arquivo CSV."); }
             };
             reader.readAsText(file, 'UTF-8');
         }
-
         renderTableAndSelect();
         selectClientByIndex(0);
     </script>
