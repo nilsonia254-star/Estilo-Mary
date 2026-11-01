@@ -464,7 +464,6 @@
             if(clientsList.length > 0) {
                 const c = clientsList[currentIndex];
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-                // Link personalizado com ID para rastrear indicações futuras
                 const fullLink = `${baseUrl}?nome=${encodeURIComponent(c.name)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
                 
                 const msg = `Olá ${c.name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
@@ -485,7 +484,7 @@
             link.click();
         }
 
-        // Importação corrigida: lê o ID real da planilha, o Nome correto e filtra datas no campo de indicação
+        // Importação corrigida para ler Nome e WhatsApp na ordem correta da sua planilha
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -504,30 +503,44 @@
                     const cols = line.split(separator);
 
                     if(cols.length >= 2) {
-                        let idCol = cols[0] ? cols[0].replace(/"/g, '').trim() : `EB-100${i}`;
-                        let nameCol = cols[1] ? cols[1].replace(/"/g, '').trim() : '';
-                        let phoneCol = cols[2] ? cols[2].replace(/"/g, '').trim() : '';
-                        let refCol = cols[3] ? cols[3].replace(/"/g, '').trim() : 'Direto';
-                        let pointsCol = parseInt(cols[4]) || 0;
-                        let daysCol = parseInt(cols[5]) || 60;
+                        // Tenta identificar se a coluna 1 é o nome ou se os dados estão invertidos
+                        let val1 = cols[0] ? cols[0].replace(/"/g, '').trim() : '';
+                        let val2 = cols[1] ? cols[1].replace(/"/g, '').trim() : '';
+                        let val3 = cols[2] ? cols[2].replace(/"/g, '').trim() : '';
+                        let val4 = cols[3] ? cols[3].replace(/"/g, '').trim() : 'Direto';
+                        let val5 = parseInt(cols[4]) || 0;
+                        let val6 = parseInt(cols[5]) || 60;
 
-                        // Se o nome ficou vazio e a coluna 0 era o nome, corrige
-                        if (!nameCol && idCol.startsWith('119')) {
-                            nameCol = 'Cliente';
+                        let finalName = '';
+                        let finalPhone = '';
+
+                        // Se a coluna 2 parece um telefone (começa com parêntese ou número), inverte para pegar o nome correto
+                        if (val2.startsWith('(') || val2.match(/^\d/)) {
+                            finalPhone = val2;
+                            finalName = val1;
+                        } else {
+                            finalName = val2;
+                            finalPhone = val1;
                         }
 
-                        // Se a coluna de indicação veio com uma data (ex: contendo '/'), limpa para "Direto"
-                        if (refCol.includes('/') || refCol.length > 30) {
-                            refCol = 'Direto';
+                        // Se o nome ficou vazio ou estranho
+                        if (!finalName || finalName.includes('EB-') || finalName.includes('2026')) {
+                            finalName = `Cliente ${i}`;
+                        }
+
+                        // Filtra se a indicação veio como data
+                        let finalRef = val4;
+                        if (finalRef.includes('/') || finalRef.length > 30 || !isNaN(finalRef)) {
+                            finalRef = 'Direto';
                         }
 
                         imported.push({
-                            id: idCol.startsWith('EB-') ? idCol : `EB-100${i}`,
-                            name: nameCol || 'Cliente Sem Nome',
-                            phone: phoneCol,
-                            ref: refCol || 'Direto',
-                            points: pointsCol,
-                            days: daysCol,
+                            id: `EB-100${i}`,
+                            name: finalName,
+                            phone: finalPhone,
+                            ref: finalRef || 'Direto',
+                            points: val5,
+                            days: val6,
                             notes: cols[6] ? cols[6].replace(/"/g, '').trim() : ''
                         });
                     }
@@ -537,7 +550,7 @@
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas com os nomes e indicações corrigidos!`);
+                    alert(`${imported.length} clientes importadas com os nomes restaurados com sucesso!`);
                 } else {
                     alert("Não foi possível ler os dados. Verifique o arquivo CSV.");
                 }
