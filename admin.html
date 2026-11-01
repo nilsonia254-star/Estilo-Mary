@@ -48,7 +48,6 @@
             padding: 6px 12px;
             border-radius: 20px;
         }
-        /* Seção do Gráfico */
         .chart-box {
             background: #1a1d26;
             border: 1px solid #2a2e3d;
@@ -140,7 +139,6 @@
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
         .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
         
-        /* Tabela & Cadastro */
         .table-section {
             margin-top: 24px;
             border-top: 1px solid #232733;
@@ -197,7 +195,6 @@
             <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
         </div>
 
-        <!-- Gráfico Focado em Indicações (Semanal / Mensal) -->
         <div class="chart-box">
             <div class="chart-header">
                 <span style="font-size: 14px; font-weight: bold; color: #0088ff;">👥 Pessoas que Vieram por Indicação</span>
@@ -212,7 +209,6 @@
         </div>
 
         <div class="grid-layout">
-            <!-- Coluna Esquerda: Gerenciar Cliente -->
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
                 
@@ -239,7 +235,6 @@
                 </div>
             </div>
 
-            <!-- Coluna Direita: Lançar Pontos & Validade -->
             <div>
                 <div class="section-title">Lançar Pontos & Validade do Cartão</div>
 
@@ -273,7 +268,6 @@
             </div>
         </div>
 
-        <!-- Tabela & Botões de Excel -->
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
@@ -297,14 +291,12 @@
                     </tr>
                 </thead>
                 <tbody id="clientTableBody">
-                    <!-- Preenchido dinamicamente -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // Lista principal de clientes armazenada na memória
         let clientsList = [
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60 }
         ];
@@ -352,7 +344,6 @@
             referralChart.update();
         }
 
-        // Atualiza a tabela visual e o menu de seleção com base na lista de clientes
         function renderTableAndSelect() {
             const tbody = document.getElementById('clientTableBody');
             const select = document.getElementById('selectClient');
@@ -360,7 +351,6 @@
             select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
 
             clientsList.forEach((client, index) => {
-                // Preenche a tabela
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${client.id}</td>
@@ -373,7 +363,6 @@
                 `;
                 tbody.appendChild(tr);
 
-                // Preenche o menu suspenso de Gerenciar Cliente
                 const opt = document.createElement('option');
                 opt.value = index;
                 opt.text = `[${client.id}] ${client.name} (${client.points}/10 pts)`;
@@ -490,7 +479,7 @@
             link.click();
         }
 
-        // Importação limpa e segura por CSV gerado pelo Excel
+        // Importação inteligente que aceita tanto vírgula quanto ponto e vírgula (;)
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -498,15 +487,18 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 const text = e.target.result;
-                const lines = text.split('\n');
+                const lines = text.split(/\r\n|\n/);
                 let imported = [];
 
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if(!line) continue;
                     
-                    const cols = line.split(',');
-                    if(cols.length >= 3) {
+                    // Identifica se usa ponto e vírgula ou vírgula
+                    const separator = line.includes(';') ? ';' : ',';
+                    const cols = line.split(separator);
+
+                    if(cols.length >= 2) {
                         imported.push({
                             id: cols[0] ? cols[0].replace(/"/g, '').trim() : `EB-100${i+1}`,
                             name: cols[1] ? cols[1].replace(/"/g, '').trim() : 'Cliente',
@@ -524,13 +516,12 @@
                     selectClientByIndex(0);
                     alert(`${imported.length} clientes importadas com sucesso para o painel!`);
                 } else {
-                    alert("Não foi possível ler os dados. Certifique-se de salvar o Excel como arquivo CSV (Separado por vírgulas).");
+                    alert("Não foi possível ler os dados. Verifique o arquivo CSV.");
                 }
             };
             reader.readAsText(file, 'UTF-8');
         }
 
-        // Inicializa a tela com a cliente padrão
         renderTableAndSelect();
         selectClientByIndex(0);
     </script>
