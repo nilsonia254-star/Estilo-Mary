@@ -25,111 +25,113 @@
             max-width: 420px;
             background: #14161d;
             border-radius: 20px;
-            padding: 24px;
+            padding: 22px;
             border: 2px solid #e5c158;
             box-shadow: 0 10px 30px rgba(229, 193, 88, 0.15);
             text-align: center;
         }
         .brand-title {
             color: #e5c158;
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .brand-subtitle {
             color: #a0a6b8;
-            font-size: 12px;
-            margin-bottom: 20px;
+            font-size: 11px;
+            margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
         .welcome-box {
             background: #1a1d26;
             border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 20px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
             border: 1px solid #2a2e3d;
             text-align: left;
         }
         .welcome-name {
             color: #ffffff;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
+            margin-bottom: 3px;
         }
         .welcome-status {
             color: #a0a6b8;
-            font-size: 12px;
-            margin-top: 4px;
+            font-size: 11px;
         }
         .points-display {
             background: linear-gradient(135deg, #e5c158, #b89735);
             color: #101217;
             border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 20px;
+            padding: 14px;
+            margin-bottom: 6px;
             font-weight: bold;
         }
         .points-number {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 800;
         }
-        .points-label {
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .points-subtext {
+            font-size: 11px;
+            color: #442f00;
+            margin-top: 4px;
+            font-weight: 600;
         }
+        /* Grid de selos idêntico ao modelo favorito */
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            margin-top: 14px;
         }
         .stamp {
             background: #1a1d26;
             border: 1px solid #2a2e3d;
             border-radius: 10px;
-            height: 50px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 14px;
-            color: #555c70;
+            font-size: 13px;
+            color: #6c757d;
         }
         .stamp.active {
             background: #14161d;
-            border-color: #e5c158;
-            color: #e5c158;
-            box-shadow: 0 0 10px rgba(229,193,88,0.3);
+            border-color: #ff3399;
+            color: #ff3399;
+            box-shadow: 0 0 10px rgba(255, 51, 153, 0.25);
         }
         .total-box {
-            background: #1a1d26;
-            border: 1px solid #e5c158;
+            background: linear-gradient(135deg, #e5c158, #c49d30);
+            color: #101217;
             border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 20px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: bold;
-            font-size: 14px;
-            color: #e5c158;
+            font-weight: 800;
+            font-size: 13px;
         }
         .info-box {
             background: #1a1d26;
             border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
             text-align: left;
             border: 1px solid #2a2e3d;
-            font-size: 12px;
+            font-size: 11px;
             color: #a0a6b8;
-            line-height: 1.5;
+            line-height: 1.4;
         }
         .info-box strong {
             color: #ffffff;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         .btn-action {
             display: block;
@@ -137,19 +139,19 @@
             padding: 12px;
             border-radius: 12px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             text-decoration: none;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             transition: opacity 0.2s;
         }
         .btn-action:hover { opacity: 0.9; }
         .btn-whatsapp { background: #2ecc71; color: #ffffff; }
         .btn-referral { background: #0088ff; color: #ffffff; }
         .footer-note {
-            font-size: 11px;
+            font-size: 10px;
             color: #6c757d;
-            margin-top: 10px;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -160,15 +162,16 @@
         <div class="brand-subtitle">Cartão Fidelidade Digital</div>
 
         <div class="welcome-box">
-            <div class="welcome-name" id="displayName">Olá! 💖</div>
-            <div class="welcome-status" id="displayStatus">Acompanhe seus pontos abaixo.</div>
+            <div class="welcome-name" id="displayName">Olá, Cliente! 👋</div>
+            <div class="welcome-status" id="displayMsg">Você ganhou pontos em atendimento recente 🎉</div>
         </div>
 
         <div class="points-display">
-            <div class="points-number" id="displayPointsNum">0</div>
-            <div class="points-label">Pontos Acumulados</div>
+            <div class="points-number" id="displayPointsNum">0 pontos 💖</div>
+            <div class="points-subtext" id="displayValidity">Atualizado hoje • Válido por 60 dias</div>
         </div>
 
+        <!-- 10 quadradinhos dos selos -->
         <div class="stamps-grid" id="stampsGrid"></div>
 
         <div class="total-box">
@@ -191,37 +194,36 @@
         </a>
 
         <a href="#" id="btnReferral" class="btn-action btn-referral" onclick="shareReferral(event)">
-            👥 Indique uma amiga e ganhe pontos
+            👥 Indique uma amiga e ganhe +5 pts
         </a>
 
         <div class="footer-note">Toque nos botões acima para agendar ou indicar</div>
     </div>
 
     <script>
-        // Leitura limpa e direta dos dados enviados pelo painel
         const urlParams = new URLSearchParams(window.location.search);
-        
-        let clientName = urlParams.get('nome');
+        let clientName = urlParams.get('nome') || 'Cliente';
         let clientId = urlParams.get('id') || 'EB-1001';
-        let clientPoints = parseInt(urlParams.get('pontos'));
+        let clientPoints = parseInt(urlParams.get('pontos')) || 0;
 
-        // Se faltar algum dado na URL, assume valores seguros zerados em vez de dados fixos antigos
-        if (!clientName) clientName = "Cliente";
-        if (isNaN(clientPoints)) clientPoints = 0;
-
-        // Atualiza os elementos na tela do cliente
-        document.getElementById('displayName').innerText = `Olá, ${clientName}! 💖`;
-        document.getElementById('displayPointsNum').innerText = clientPoints;
+        document.getElementById('displayName').innerText = `Olá, ${clientName}! 👋`;
+        document.getElementById('displayPointsNum').innerText = `${clientPoints} pontos 💖`;
         document.getElementById('totalPointsText').innerText = `${clientPoints} PTS`;
-        document.getElementById('displayStatus').innerText = `ID: ${clientId} • Cartão atualizado`;
+        document.getElementById('displayValidity').innerText = `ID: ${clientId} • Atualizado hoje - Válido por 60 dias`;
 
-        // Desenha os 10 quadradinhos e acende exatamente a quantidade de pontos da cliente
         const grid = document.getElementById('stampsGrid');
         grid.innerHTML = '';
+        
+        // Desenha os 10 selos com o estilo elegante e preenche com base nos pontos da cliente
         for (let i = 1; i <= 10; i++) {
             const div = document.createElement('div');
-            div.className = `stamp ${i <= clientPoints ? 'active' : ''}`;
-            div.innerText = i <= clientPoints ? '✓' : i;
+            if (i <= clientPoints) {
+                div.className = 'stamp active';
+                div.innerText = `+${Math.min(clientPoints, 5)}`;
+            } else {
+                div.className = 'stamp';
+                div.innerText = i;
+            }
             grid.appendChild(div);
         }
 
