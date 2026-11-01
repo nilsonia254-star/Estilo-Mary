@@ -4,28 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cartão Fidelidade - Designer Estilo Mary</title>
-    <!-- Fonte Poppins / Montserrat para Tipografia Premium -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: #0A0A0A;
-            color: #FFFFFF;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 16px;
-        }
-
-        /* Container Principal com Moldura Dourada Luxuosa */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #0A0A0A; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+        
         .card-container {
             width: 100%;
             max-width: 420px;
@@ -33,12 +16,10 @@
             border-radius: 20px;
             padding: 24px 20px;
             border: 2px solid #D4AF37;
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.15), inset 0 0 15px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2), inset 0 0 15px rgba(0, 0, 0, 0.8);
             text-align: center;
-            position: relative;
         }
-
-        /* Título Principal com Glow Dourado Sutil */
+        
         .brand-title {
             color: #FFD700;
             font-size: 21px;
@@ -47,7 +28,7 @@
             text-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
             letter-spacing: 0.5px;
         }
-
+        
         .brand-subtitle {
             color: #A0A6B8;
             font-size: 11px;
@@ -56,8 +37,7 @@
             letter-spacing: 1.5px;
             font-weight: 600;
         }
-
-        /* Caixa de Destaque com Borda Rosa/Magenta Sutil */
+        
         .welcome-box {
             background: #1A1A1A;
             border-radius: 16px;
@@ -67,48 +47,31 @@
             box-shadow: 0 0 12px rgba(192, 38, 211, 0.15);
             text-align: left;
         }
-
-        .welcome-name {
-            color: #FFFFFF;
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .welcome-status {
-            color: #A0A6B8;
-            font-size: 12px;
-            font-weight: 400;
-        }
-
-        /* Destaque 13 Pontos Dourado Realista */
+        
+        .welcome-name { color: #FFFFFF; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .welcome-status { color: #A0A6B8; font-size: 12px; font-weight: 400; }
+        
         .badge-points {
             display: inline-block;
             background: linear-gradient(135deg, #FFE58F 0%, #D4AF37 50%, #997A15 100%);
             color: #0A0A0A;
             border-radius: 12px;
             padding: 10px 24px;
-            margin: 12px 0 10px 0;
+            margin: 12px 0 8px 0;
             font-weight: 800;
             font-size: 18px;
             box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
-
-        .validity-text {
-            color: #A0A6B8;
-            font-size: 11px;
-            margin-top: 4px;
-            font-weight: 400;
-        }
-
-        /* Grid de Pontos com Bordas Neon Roxo/Magenta */
+        
+        .validity-text { color: #A0A6B8; font-size: 11px; font-weight: 400; }
+        
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin: 20px 0;
         }
-
+        
         .stamp {
             background: #1A1A1A;
             border: 1px solid #2A2A2A;
@@ -120,17 +83,15 @@
             font-weight: 700;
             font-size: 13px;
             color: #A0A6B8;
-            transition: all 0.3s ease;
         }
-
+        
         .stamp.active {
             background: #0A0A0A;
             border: 2px solid #C026D3;
             color: #FFFFFF;
             box-shadow: 0 0 12px rgba(192, 38, 211, 0.5);
         }
-
-        /* Barra TOTAL ACUMULADO Dourado Metálico Realista */
+        
         .total-bar {
             background: linear-gradient(135deg, #FFE58F 0%, #D4AF37 50%, #B8860B 100%);
             color: #0A0A0A;
@@ -142,16 +103,11 @@
             align-items: center;
             font-weight: 800;
             font-size: 13px;
-            letter-spacing: 0.5px;
             box-shadow: 0 4px 18px rgba(212, 175, 55, 0.25);
         }
-
-        .total-bar span:last-child {
-            font-size: 15px;
-            font-weight: 900;
-        }
-
-        /* Bloco Informativo Sofisticado */
+        
+        .total-bar span:last-child { font-size: 15px; font-weight: 900; }
+        
         .info-card {
             background: #1A1A1A;
             border-radius: 14px;
@@ -163,15 +119,9 @@
             color: #A0A6B8;
             line-height: 1.5;
         }
-
-        .info-card strong {
-            color: #FFFFFF;
-            display: block;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-
-        /* Botões Flat Premium Sólidos */
+        
+        .info-card strong { color: #FFFFFF; display: block; margin-bottom: 4px; font-size: 12px; }
+        
         .btn-flat {
             display: flex;
             align-items: center;
@@ -188,56 +138,33 @@
             cursor: pointer;
             transition: opacity 0.2s ease;
         }
-
-        .btn-flat:hover {
-            opacity: 0.92;
-        }
-
-        .btn-green {
-            background-color: #00C853;
-            color: #FFFFFF;
-        }
-
-        .btn-blue {
-            background-color: #00A8E8;
-            color: #FFFFFF;
-        }
-
-        .footer-caption {
-            font-size: 10.5px;
-            color: #6C757D;
-            margin-top: 4px;
-        }
+        .btn-flat:hover { opacity: 0.92; }
+        .btn-green { background-color: #00C853; color: #FFFFFF; }
+        .btn-blue { background-color: #00A8E8; color: #FFFFFF; }
+        .footer-caption { font-size: 10.5px; color: #6C757D; margin-top: 4px; }
     </style>
 </head>
 <body>
-
     <div class="card-container">
         <div class="brand-title">✨ Designer Estilo Mary ✨</div>
         <div class="brand-subtitle">Cartão Fidelidade Digital</div>
 
-        <!-- Bloco de Boas-Vindas com Borda Magenta -->
         <div class="welcome-box">
             <div class="welcome-name" id="displayName">Olá, Cliente! 👋</div>
             <div class="welcome-status" id="displayMsg">Você ganhou pontos em atendimento recente 🎉</div>
-            
             <div style="text-align: center;">
                 <div class="badge-points" id="displayBadge">0 pontos 💖</div>
             </div>
-            
             <div class="validity-text" id="displayValidity">Atualizado hoje • Válido por 60 dias</div>
         </div>
 
-        <!-- Grid 10 Pontos com Moldura Neon Roxo/Magenta -->
         <div class="stamps-grid" id="stampsGrid"></div>
 
-        <!-- Barra Total Acumulado Dourado Metálico -->
         <div class="total-bar">
             <span>TOTAL ACUMULADO</span>
             <span id="totalPointsText">0 PTS</span>
         </div>
 
-        <!-- Endereço e Regras -->
         <div class="info-card">
             <strong>📍 Endereço do Estúdio:</strong>
             Rua Nova Aliança, nº 2B (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
@@ -246,12 +173,10 @@
             Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)
         </div>
 
-        <!-- Botão Verde Agendar -->
         <a href="https://wa.me/5511967066029?text=Olá%20Mary!%20Gostaria%20de%20agendar%20um%20horário." class="btn-flat btn-green" target="_blank">
-            💬 Agendar: WhatsApp (11) 9670-66029
+            💬 Agendar: WhatsApp (11) 9670-6029
         </a>
 
-        <!-- Botão Azul Indicar -->
         <a href="#" id="btnReferral" class="btn-flat btn-blue" onclick="shareReferral(event)">
             👥 Indique uma amiga e ganhe +5 pts
         </a>
@@ -260,14 +185,12 @@
     </div>
 
     <script>
-        // Leitura Dinâmica das variáveis passadas pelo Painel de Gestão (admin.html)
         const urlParams = new URLSearchParams(window.location.search);
         let clientName = urlParams.get('nome') || 'Cliente';
         let clientId = urlParams.get('id') || 'EB-1001';
         let clientPoints = parseInt(urlParams.get('pontos')) || 0;
         let clientDays = parseInt(urlParams.get('dias')) || 60;
 
-        // Formatação das datas dinâmicas de atualização e validade
         const today = new Date();
         const formattedDate = today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         
@@ -275,22 +198,20 @@
         validityDate.setDate(today.getDate() + clientDays);
         const formattedValidity = validityDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        // Atualizando textos e dados na tela
         document.getElementById('displayName').innerText = `Olá, ${clientName}! 👋`;
         document.getElementById('displayBadge').innerText = `${clientPoints} pontos 💖`;
         document.getElementById('displayValidity').innerText = `Atualizado em ${formattedDate} - Válido até ${formattedValidity}`;
         document.getElementById('totalPointsText').innerText = `${clientPoints} PTS`;
 
-        // Renderização dos 10 selos com a estética exata da imagem de referência
         const grid = document.getElementById('stampsGrid');
         grid.innerHTML = '';
         
+        // Renderização precisa: marca exatamente o número de pontos enviado pelo painel (ex: 1 ponto acende o 1, 3 pontos acendem até o 3)
         for (let i = 1; i <= 10; i++) {
             const div = document.createElement('div');
             if (i <= clientPoints) {
                 div.className = 'stamp active';
-                // Define o selo preenchido igual à imagem (+5, +3, etc)
-                div.innerText = i === 1 ? '+5' : (i === 2 ? '+3' : (i === 3 ? '+5' : i));
+                div.innerText = i; // Mostra o número exato correspondente ao ponto ganho
             } else {
                 div.className = 'stamp';
                 div.innerText = i;
@@ -298,7 +219,6 @@
             grid.appendChild(div);
         }
 
-        // Função para envio de link de indicação
         function shareReferral(e) {
             e.preventDefault();
             const referralLink = `https://nilsonia254-star.github.io/Estilo-Mary/?indica=${clientId}`;
