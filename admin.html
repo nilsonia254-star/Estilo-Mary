@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Gestor - Designer Estilo Mary</title>
+    <title>Painel do Administrador - Designer Estilo Mary</title>
     <style>
         * {
             box-sizing: border-box;
@@ -12,175 +12,161 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #080808;
+            background-color: #050505;
             color: #ffffff;
-            padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 10px;
         }
         .admin-container {
-            width: 100%;
-            max-width: 500px;
-            background: linear-gradient(145deg, #121212, #1a1a1a);
+            background: #0d0d0d;
             border: 2px solid #e5c158;
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(229, 193, 88, 0.2);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            padding: 22px;
+            box-shadow: 0 10px 35px rgba(229, 193, 88, 0.2);
         }
-        h1 {
-            font-size: 20px;
-            color: #ffffff;
-            margin-bottom: 5px;
+        .header {
             text-align: center;
-        }
-        .subtitle {
-            color: #e5c158;
-            font-size: 12px;
-            text-transform: uppercase;
-            text-align: center;
-            margin-bottom: 25px;
-            letter-spacing: 1px;
-        }
-        .section-box {
-            background: #161616;
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 16px;
             margin-bottom: 20px;
         }
-        .section-box h3 {
-            font-size: 15px;
-            color: #e5c158;
-            margin-bottom: 12px;
+        .header h1 {
+            color: #f7e196;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .header p {
+            color: #aaaaaa;
+            font-size: 13px;
         }
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
         label {
             display: block;
             font-size: 13px;
             color: #cccccc;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
+            font-weight: 600;
         }
         input, select {
             width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: #222222;
-            border: 1px solid #444444;
+            padding: 12px;
+            border-radius: 10px;
+            background: #141414;
+            border: 1px solid #333333;
             color: #ffffff;
             font-size: 14px;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: #e5c158;
         }
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             border-radius: 10px;
             text-align: center;
-            font-weight: 600;
+            text-decoration: none;
+            font-weight: bold;
             font-size: 14px;
+            margin-top: 15px;
             cursor: pointer;
             border: none;
-            margin-top: 10px;
         }
         .btn-primary {
-            background-color: #e5c158;
-            color: #080808;
+            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728);
+            color: #1a1a1a;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
         }
-        .btn-copy {
-            background-color: #25d366;
+        .btn-whatsapp {
+            background-color: #2ecc71;
             color: white;
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: #161616;
+        .result-box {
+            background: #141414;
             border: 1px solid #333333;
-            padding: 12px 8px;
-            border-radius: 10px;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 20px;
+            display: none;
         }
-        .stat-card span {
+        .result-box h3 {
+            font-size: 14px;
+            color: #f7e196;
+            margin-bottom: 8px;
+        }
+        .result-link {
+            font-size: 12px;
+            color: #ffffff;
+            word-break: break-all;
+            background: #050505;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #222222;
+            margin-bottom: 10px;
             display: block;
-            font-size: 18px;
-            font-weight: bold;
-            color: #e5c158;
-            margin-top: 5px;
-        }
-        .stat-card p {
-            font-size: 11px;
-            color: #aaaaaa;
         }
     </style>
 </head>
 <body>
 
     <div class="admin-container">
-        <h1>Painel do Gestor</h1>
-        <p class="subtitle">Espaço da Beleza - Controle de Sistema</p>
-
-        <!-- Indicadores Rápidos -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <p>Clientes</p>
-                <span>1</span>
-            </div>
-            <div class="stat-card">
-                <p>Atendimentos</p>
-                <span>1</span>
-            </div>
-            <div class="stat-card">
-                <p>Pts Ativos</p>
-                <span>13</span>
-            </div>
+        <div class="header">
+            <h1>👑 Painel da Gestão 👑</h1>
+            <p>Designer Estilo Mary</p>
         </div>
 
-        <!-- Ferramenta de Cópia do Link do Admin -->
-        <div class="section-box">
-            <h3>🔗 Atalho do Painel</h3>
-            <p style="font-size: 12px; color: #aaaaaa; margin-bottom: 10px;">Copie o link desta página para acessar rapidamente no celular:</p>
-            <button onclick="copiarLinkAdmin()" class="btn btn-copy">📋 Copiar Link Deste Painel</button>
+        <div class="form-group">
+            <label for="clientName">Nome da Cliente:</label>
+            <input type="text" id="clientName" placeholder="Ex: Natália">
         </div>
 
-        <!-- Gerenciar Cliente / Lançar Pontos -->
-        <div class="section-box">
-            <h3>👤 Lançar Pontos & Validade</h3>
-            <div class="form-group">
-                <label>Nome da Cliente:</label>
-                <input type="text" id="nome-cliente" value="Natália Oliveira de Souza">
-            </div>
-            <div class="form-group">
-                <label>WhatsApp (com DDD):</label>
-                <input type="text" id="tel-cliente" value="11967066029">
-            </div>
-            <div class="form-group">
-                <label>Adicionar Pontos:</label>
-                <select id="qtd-pontos">
-                    <option value="1">+1 Ponto</option>
-                    <option value="3">+3 Pontos</option>
-                    <option value="5" selected>+5 Pontos</option>
-                </select>
-            </div>
-            <button onclick="salvarPontos()" class="btn btn-primary">Salvar e Atualizar Cliente</button>
+        <div class="form-group">
+            <label for="clientPoints">Quantidade de Pontos Atuais:</label>
+            <input type="number" id="clientPoints" placeholder="Ex: 13">
+        </div>
+
+        <div class="form-group">
+            <label for="lastUpdate">Data da Última Atualização:</label>
+            <input type="text" id="lastUpdate" value="31/10/2026">
+        </div>
+
+        <button class="btn btn-primary" onclick="generateCardLink()">Gerar Link Personalizado da Cliente</button>
+
+        <div id="resultSection" class="result-box">
+            <h3>Link gerado com sucesso!</h3>
+            <span id="generatedLink" class="result-link"></span>
+            <a id="whatsappShareBtn" href="#" class="btn btn-whatsapp" target="_blank">📲 Enviar Cartão para a Cliente</a>
         </div>
     </div>
 
     <script>
-        function copiarLinkAdmin() {
-            const linkAdmin = window.location.href;
-            navigator.clipboard.writeText(linkAdmin).then(() => {
-                alert("Link do painel copiado com sucesso!");
-            }).catch(err => {
-                console.error('Erro ao copiar: ', err);
-            });
-        }
+        function generateCardLink() {
+            const name = document.getElementById('clientName').value.trim() || 'Cliente';
+            const points = document.getElementById('clientPoints').value.trim() || '0';
+            const date = document.getElementById('lastUpdate').value.trim() || '31/10/2026';
 
-        function salvarPontos() {
-            alert("Pontos atualizados com sucesso!");
+            // Base URL do seu site no GitHub Pages
+            const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
+
+            // Monta o link com os parâmetros da cliente
+            const fullLink = `${baseUrl}?nome=${encodeURIComponent(name)}&pontos=${encodeURIComponent(points)}&data=${encodeURIComponent(date)}`;
+
+            // Exibe o resultado na tela
+            document.getElementById('generatedLink').innerText = fullLink;
+            
+            // Mensagem pronta para enviar no WhatsApp da cliente
+            const msg = `Olá ${name}! Seu Cartão Fidelidade no Designer Estilo Mary está com ${points} pontos! Acesse aqui: ${fullLink}`;
+            document.getElementById('whatsappShareBtn').href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+            document.getElementById('resultSection').style.display = 'block';
         }
     </script>
 
