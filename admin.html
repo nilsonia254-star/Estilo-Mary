@@ -212,6 +212,8 @@
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
                 
+                <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 12px; font-size: 14px; padding: 12px;">➕ Cadastrar Nova Cliente Aqui</button>
+
                 <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
                 <select id="selectClient" onchange="loadClientFromSelect()">
                     <option value="">-- Selecione uma cliente --</option>
@@ -281,7 +283,6 @@
                     <input type="file" id="excelFile" accept=".csv" style="display:none" onchange="importFromCSV(event)">
                     <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar CSV do Excel</button>
                     <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
-                    <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova</button>
                 </div>
             </div>
             <table>
@@ -404,7 +405,6 @@
 
         function addPoints(pts) {
             if(clientsList.length > 0) {
-                // Atualiza em tempo real o nome que estiver digitado na caixinha
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
                 renderTableAndSelect();
@@ -465,14 +465,12 @@
                 
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
-                alert("Nova cliente cadastrada com sucesso!");
+                alert("Nova cliente cadastrada com sucesso! Ela já está selecionada para você gerenciar os pontos.");
             }
         }
 
-        // Função corrigida para enviar os dados REAIS da cliente selecionada (Nome, ID e Pontos corretos)
         function sendWhatsApp() {
             if(clientsList.length > 0) {
-                // Pega os dados direto dos campos atuais da tela para garantir que o que foi alterado seja enviado
                 const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 const c = clientsList[currentIndex];
                 const phoneInput = document.getElementById('clientPhone').value || c.phone;
@@ -488,7 +486,6 @@
                 }
 
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-                // Envia exatamente o nome e os pontos corretos atualizados no painel
                 const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
                 
                 const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
