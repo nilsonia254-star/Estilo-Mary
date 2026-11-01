@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Administrador - Designer Estilo Mary</title>
+    <title>Painel da Gestão - Designer Estilo Mary</title>
+    <!-- Chart.js para o Gráfico de Barras -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -12,199 +14,307 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #050505;
+            background-color: #0d0e12;
             color: #ffffff;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 10px;
         }
-        .admin-container {
-            background: #0d0d0d;
-            border: 2px solid #e5c158;
-            border-radius: 24px;
+        .dashboard-container {
             width: 100%;
-            max-width: 420px;
-            padding: 22px;
-            box-shadow: 0 10px 35px rgba(229, 193, 88, 0.2);
+            max-width: 900px;
+            background: #14161d;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #232733;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .header {
-            text-align: center;
+        .header-title {
+            color: #e5c158;
+            font-size: 22px;
             margin-bottom: 20px;
-        }
-        .header h1 {
-            color: #f7e196;
-            font-size: 20px;
             font-weight: 700;
-            margin-bottom: 4px;
         }
-        .header p {
-            color: #aaaaaa;
-            font-size: 13px;
+        /* Seção do Gráfico */
+        .chart-box {
+            background: #1a1d26;
+            border: 1px solid #2a2e3d;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            height: 240px;
         }
-        .form-group {
-            margin-bottom: 15px;
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+        .section-title {
+            color: #e5c158;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 12px;
         }
         label {
             display: block;
-            font-size: 13px;
-            color: #cccccc;
-            margin-bottom: 6px;
-            font-weight: 600;
+            font-size: 12px;
+            color: #a0a6b8;
+            margin-bottom: 4px;
+            margin-top: 8px;
         }
         input, select {
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            background: #141414;
-            border: 1px solid #333333;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #101217;
+            border: 1px solid #2a2e3d;
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px;
             outline: none;
         }
         input:focus, select:focus {
             border-color: #e5c158;
         }
-        .quick-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+        .btn-group {
+            display: flex;
             gap: 8px;
-            margin-bottom: 15px;
-        }
-        .btn-quick {
-            background: #1f1f1f;
-            border: 1px solid #444444;
-            color: #f7e196;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-        }
-        .btn-quick:hover {
-            background: #332d12;
-            border-color: #e5c158;
+            margin-top: 8px;
         }
         .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
             text-align: center;
             text-decoration: none;
-            font-weight: bold;
-            font-size: 14px;
-            margin-top: 15px;
-            cursor: pointer;
-            border: none;
+            display: inline-block;
+            transition: opacity 0.2s;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728);
-            color: #1a1a1a;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        .btn:hover { opacity: 0.9; }
+        .btn-gold { background: #e5c158; color: #101217; flex: 1; }
+        .btn-cyan { background: #00d2d3; color: #101217; flex: 1; }
+        .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; }
+        .btn-green { background: #2ecc71; color: #ffffff; width: 100%; }
+        .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
+        .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
+        
+        /* Tabela */
+        .table-section {
+            margin-top: 24px;
         }
-        .btn-whatsapp {
-            background-color: #2ecc71;
-            color: white;
-            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.25);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
         }
-        .result-box {
-            background: #141414;
-            border: 1px solid #333333;
-            border-radius: 12px;
-            padding: 14px;
-            margin-top: 20px;
-            display: none;
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #232733;
         }
-        .result-box h3 {
-            font-size: 14px;
-            color: #f7e196;
-            margin-bottom: 8px;
+        th {
+            color: #a0a6b8;
+            font-weight: 600;
         }
-        .result-link {
-            font-size: 12px;
-            color: #ffffff;
-            word-break: break-all;
-            background: #050505;
-            padding: 8px;
+        .btn-edit {
+            background: #e5c158;
+            color: #101217;
+            padding: 4px 10px;
             border-radius: 6px;
-            border: 1px solid #222222;
-            margin-bottom: 10px;
-            display: block;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div class="admin-container">
-        <div class="header">
-            <h1>👑 Painel da Gestão 👑</h1>
-            <p>Designer Estilo Mary</p>
+    <div class="dashboard-container">
+        <div class="header-title">✨ Painel da Gestão - Designer Estilo Mary</div>
+
+        <!-- Gráfico de Barras de Atendimentos -->
+        <div class="chart-box">
+            <canvas id="attendanceChart"></canvas>
         </div>
 
-        <div class="form-group">
-            <label for="clientName">Nome da Cliente:</label>
-            <input type="text" id="clientName" placeholder="Ex: Natália">
-        </div>
+        <div class="grid-layout">
+            <!-- Coluna Esquerda: Gerenciar Cliente -->
+            <div>
+                <div class="section-title">Gerenciar Cliente</div>
+                
+                <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
+                <select id="selectClient" onchange="loadSelectedClient()">
+                    <option value="">-- Selecione uma cliente --</option>
+                    <option value="EB-1001">[EB-1001] Mariana dos santos (1/10 pts)</option>
+                </select>
 
-        <div class="form-group">
-            <label for="clientPoints">Quantidade Total de Pontos:</label>
-            <input type="number" id="clientPoints" placeholder="Ex: 5" value="0">
-        </div>
+                <label for="clientId">ID do Cliente (Automático / Busca):</label>
+                <input type="text" id="clientId" value="EB-1001" readonly>
 
-        <div class="form-group">
-            <label>Adicionar pontos rápido:</label>
-            <div class="quick-buttons">
-                <button type="button" class="btn-quick" onclick="addPoints(1)">+1 Ponto</button>
-                <button type="button" class="btn-quick" onclick="addPoints(3)">+3 Pontos</button>
-                <button type="button" class="btn-quick" onclick="addPoints(5)">+5 Pontos</button>
+                <label for="clientName">Nome Completo da Cliente:</label>
+                <input type="text" id="clientName" value="Mariana dos santos">
+
+                <label for="clientPhone">WhatsApp com DDD (Ex: 11987654321):</label>
+                <input type="text" id="clientPhone" value="11967066029">
+
+                <div class="btn-group" style="margin-top: 15px;">
+                    <button class="btn btn-green" onclick="saveClient()">💾 Salvar / Atualizar</button>
+                    <button class="btn btn-red" onclick="deleteClient()">🗑️ Eliminar Cliente</button>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Lançar Pontos & Validade -->
+            <div>
+                <div class="section-title">Lançar Pontos & Validade do Cartão</div>
+
+                <label>Adicionar Pontos:</label>
+                <div class="btn-group">
+                    <button class="btn btn-gold" onclick="addPoints(1)">+ 1 Ponto</button>
+                    <button class="btn btn-gold" onclick="addPoints(3)">+ 3 Pontos</button>
+                    <button class="btn btn-gold" onclick="addPoints(5)">+ 5 Pontos</button>
+                </div>
+
+                <label style="margin-top: 15px;">Ajustar Dias de Validade do Cartão:</label>
+                <div class="btn-group">
+                    <button class="btn btn-cyan" onclick="adjustDays(10)">+ 10 Dias</button>
+                    <button class="btn btn-coral" onclick="adjustDays(-10)">- 10 Dias</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+                    <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 15px;">
+                    <button class="btn btn-gold" style="width: auto;" onclick="alert('Validade ajustada!')">Fixar Dias</button>
+                </div>
+                <span style="font-size: 11px; color: #707585; display: block; margin-top: 4px;">Prazo padrão: 60 dias para completar o cartão.</span>
+
+                <label style="margin-top: 15px; color: #ff6b6b;">Correção de Pontos:</label>
+                <div class="btn-group">
+                    <button class="btn btn-coral" onclick="addPoints(-1)">- 1 Ponto</button>
+                    <button class="btn btn-coral" onclick="resetPoints()">🔄 Zerar Cartão</button>
+                </div>
+
+                <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="lastUpdate">Data da Atualização:</label>
-            <input type="text" id="lastUpdate" value="31/10/2026">
-        </div>
-
-        <button class="btn btn-primary" onclick="generateCardLink()">Gerar Link Personalizado</button>
-
-        <div id="resultSection" class="result-box">
-            <h3>Link gerado com sucesso!</h3>
-            <span id="generatedLink" class="result-link"></span>
-            <a id="whatsappShareBtn" href="#" class="btn btn-whatsapp" target="_blank">📲 Enviar Cartão no WhatsApp</a>
+        <!-- Tabela de Clientes Cadastrados -->
+        <div class="table-section">
+            <div class="section-title">Lista de Clientes Cadastrados</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>WhatsApp</th>
+                        <th>Pontos</th>
+                        <th>Validade (Dias)</th>
+                        <th>Cartão Expira Em</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="clientTableBody">
+                    <tr>
+                        <td>EB-1001</td>
+                        <td>Mariana dos santos</td>
+                        <td>11967066029</td>
+                        <td><span id="tbPoints">1</span>/10</td>
+                        <td><span id="tbDays">60</span> dias</td>
+                        <td>31/12/2026</td>
+                        <td><button class="btn-edit" onclick="loadSelectedClient()">Editar</button></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        function addPoints(amount) {
-            const pointsInput = document.getElementById('clientPoints');
-            let current = parseInt(pointsInput.value) || 0;
-            pointsInput.value = current + amount;
+        let currentPoints = 1;
+        let currentDays = 60;
+
+        // Configuração do Gráfico de Barras de Atendimentos
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                datasets: [{
+                    label: 'Atendimentos da Semana',
+                    data: [3, 7, 4, 8, 9, 12],
+                    backgroundColor: 'rgba(229, 193, 88, 0.8)',
+                    borderColor: '#e5c158',
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#a0a6b8' } }
+                },
+                scales: {
+                    x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } },
+                    y: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' }, beginAtZero: true }
+                }
+            }
+        });
+
+        function updateDisplay() {
+            document.getElementById('tbPoints').innerText = currentPoints;
+            document.getElementById('tbDays').innerText = currentDays;
+            document.getElementById('validityDays').value = currentDays;
         }
 
-        function generateCardLink() {
-            const name = document.getElementById('clientName').value.trim() || 'Cliente';
-            const points = document.getElementById('clientPoints').value.trim() || '0';
-            const date = document.getElementById('lastUpdate').value.trim() || '31/10/2026';
+        function addPoints(pts) {
+            currentPoints = Math.max(0, currentPoints + pts);
+            updateDisplay();
+            // Alimenta o gráfico simulando novo atendimento
+            if(pts > 0) {
+                attendanceChart.data.datasets[0].data[5] += 1;
+                attendanceChart.update();
+            }
+        }
 
-            // Base URL do seu site no GitHub Pages
+        function resetPoints() {
+            currentPoints = 0;
+            updateDisplay();
+        }
+
+        function adjustDays(days) {
+            currentDays = Math.max(0, currentDays + days);
+            updateDisplay();
+        }
+
+        function saveClient() {
+            alert("Cliente " + document.getElementById('clientName').value + " salva com sucesso!");
+        }
+
+        function deleteClient() {
+            if(confirm("Deseja realmente eliminar esta cliente?")) {
+                alert("Cliente removida.");
+            }
+        }
+
+        function sendWhatsApp() {
+            const name = document.getElementById('clientName').value;
+            const phone = document.getElementById('clientPhone').value;
             const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-
-            // Monta o link com os parâmetros da cliente
-            const fullLink = `${baseUrl}?nome=${encodeURIComponent(name)}&pontos=${encodeURIComponent(points)}&data=${encodeURIComponent(date)}`;
-
-            // Exibe o resultado na tela
-            document.getElementById('generatedLink').innerText = fullLink;
+            const fullLink = `${baseUrl}?nome=${encodeURIComponent(name)}&pontos=${currentPoints}&data=01/11/2026`;
             
-            // Mensagem pronta para enviar no WhatsApp da cliente
-            const msg = `Olá ${name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary foi atualizado para ${points} pontos! Acesse aqui: ${fullLink}`;
-            document.getElementById('whatsappShareBtn').href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            const msg = `Olá ${name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${currentPoints} pontos! Acesse aqui: ${fullLink}`;
+            window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(msg)}`, '_blank');
+        }
 
-            document.getElementById('resultSection').style.display = 'block';
+        function loadSelectedClient() {
+            document.getElementById('clientId').value = "EB-1001";
+            document.getElementById('clientName').value = "Mariana dos santos";
+            document.getElementById('clientPhone').value = "11967066029";
         }
     </script>
-
 </body>
 </html>
