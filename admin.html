@@ -257,7 +257,7 @@
             }
         }
         function exportToExcel() {
-            let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
+            let csv = '\uFEFFID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
             clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days},"${c.finance || ''}","${c.notes || ''}"\n`; });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
@@ -268,7 +268,10 @@
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
+
+            // Utiliza FileReader com suporte a codificação em lote para aceitar arquivos do celular (ISO-8859-1 / Windows-1252)
             const reader = new FileReader();
+            reader.readAsText(file, 'ISO-8859-1');
             reader.onload = function(e) {
                 const text = e.target.result;
                 const lines = text.split(/\r\n|\n/);
@@ -306,10 +309,9 @@
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas com sucesso!`);
+                    alert(`${imported.length} clientes importadas com sucesso do celular!`);
                 } else { alert("Não foi possível ler os dados. Verifique o arquivo CSV."); }
             };
-            reader.readAsText(file, 'UTF-8');
         }
         renderTableAndSelect();
         selectClientByIndex(0);
