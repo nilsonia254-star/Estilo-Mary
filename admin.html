@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Gestão - Designer Estilo Mary</title>
+    <!-- Bibliotecas para Gráficos e Leitura de Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
@@ -112,8 +114,9 @@
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <input type="file" id="excelFile" accept=".csv" style="display:none" onchange="importFromCSV(event)">
-                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar CSV do Excel</button>
+                    <!-- Aceita arquivos XLSX, XLS e CSV diretamente do celular ou PC -->
+                    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="importFromExcel(event)">
+                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar Arquivo Excel (.XLSX)</button>
                     <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
                 </div>
             </div>
@@ -126,7 +129,6 @@
         </div>
     </div>
     <script>
-        // Carrega clientes salvos no celular ou usa a padrão se for o primeiro acesso
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, finance: "Pago adiantado", notes: "Cliente VIP" }
@@ -144,6 +146,7 @@
             data: { labels: weeklyReferrals.labels, datasets: [{ label: 'Indicações Recebidas', data: weeklyReferrals.data, backgroundColor: 'rgba(0, 136, 255, 0.8)', borderColor: '#0088ff', borderWidth: 1, borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' }, beginAtZero: true } } }
         });
+
         function switchChart(view) {
             if(view === 'weekly') {
                 document.getElementById('btnWeekly').classList.add('active');
@@ -158,6 +161,7 @@
             }
             referralChart.update();
         }
+
         function renderTableAndSelect() {
             const tbody = document.getElementById('clientTableBody');
             const select = document.getElementById('selectClient');
@@ -175,6 +179,7 @@
             document.getElementById('totalClientsCount').innerText = clientsList.length;
             persistData();
         }
+
         let currentIndex = 0;
         function selectClientByIndex(index) {
             currentIndex = index;
@@ -188,10 +193,12 @@
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
         }
+
         function loadClientFromSelect() {
             const index = document.getElementById('selectClient').value;
             if (index !== "") { selectClientByIndex(parseInt(index)); }
         }
+
         function addPoints(pts) {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
@@ -200,6 +207,7 @@
                 selectClientByIndex(currentIndex);
             }
         }
+
         function resetPoints() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].points = 0;
@@ -207,6 +215,7 @@
                 selectClientByIndex(currentIndex);
             }
         }
+
         function adjustDays(days) {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].days = Math.max(0, (clientsList[currentIndex].days || 60) + days);
@@ -215,6 +224,7 @@
                 selectClientByIndex(currentIndex);
             }
         }
+
         function saveValidityDays() {
             if(clientsList.length > 0) {
                 const val = parseInt(document.getElementById('validityDays').value) || 60;
@@ -223,6 +233,7 @@
                 alert("Validade de " + val + " dias fixada para esta cliente!");
             }
         }
+
         function saveClient() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value;
@@ -235,6 +246,7 @@
                 alert("Dados da cliente salvos com sucesso no celular!");
             }
         }
+
         function deleteClient() {
             if(clientsList.length > 1) {
                 if(confirm("Deseja realmente eliminar esta cliente?")) {
@@ -246,6 +258,7 @@
                 }
             } else { alert("Você não pode excluir a última cliente restante."); }
         }
+
         function addNewClientPrompt() {
             const name = prompt("Digite o nome da nova cliente:");
             if(name) {
@@ -258,6 +271,7 @@
                 alert("Nova cliente cadastrada e salva com sucesso!");
             }
         }
+
         function sendWhatsApp() {
             if(clientsList.length > 0) {
                 const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
@@ -274,6 +288,7 @@
                 window.open(waUrl, '_blank');
             }
         }
+
         function exportToExcel() {
             let csv = '\uFEFFID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
             clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days || 60},"${c.finance || ''}","${c.notes || ''}"\n`; });
@@ -283,52 +298,59 @@
             link.download = `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
-        function importFromCSV(event) {
+
+        // Nova função moderna para importar arquivos XLSX diretamente do celular ou PC com segurança total
+        function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
+
             const reader = new FileReader();
-            reader.readAsText(file, 'ISO-8859-1');
             reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split(/\r\n|\n/);
-                let imported = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if(!line) continue;
-                    const separator = line.includes(';') ? ';' : ',';
-                    const cols = line.split(separator).map(c => c.replace(/^"|"$/g, '').trim());
-                    if(cols.length >= 2) {
-                        let id = cols[0] && cols[0].startsWith('EB-') ? cols[0] : `EB-100${i}`;
-                        let name = ''; let phone = ''; let ref = 'Direto'; let points = 0; let days = 60; let finance = ''; let notes = '';
-                        cols.forEach(val => {
-                            if (!val) return;
-                            if (val.startsWith('EB-')) { id = val; }
-                            else if (val.startsWith('(') || val.match(/^\d{10,11}$/) || (val.includes('11') && val.length <= 15 && !isNaN(val.replace(/\D/g,'')))) { phone = val; }
-                            else if (!isNaN(val) && parseInt(val) <= 50 && points === 0) { points = parseInt(val); }
-                            else if (!isNaN(val) && parseInt(val) > 50) { days = parseInt(val); }
-                            else if (val.toLowerCase() === 'direto' || val.includes('[EB-')) { ref = val; }
-                            else if (!name && val.length > 2 && !val.includes('/')) { name = val; }
-                            else if (!finance && (val.toLowerCase().includes('pagou') || val.toLowerCase().includes('dev') || val.toLowerCase().includes('pix') || val.toLowerCase().includes('adiantado'))) { finance = val; }
-                            else if (!notes && val.length > 0 && name && phone) { notes = val; }
-                        });
-                        if (!name && cols[1]) name = cols[1];
-                        if (!phone && cols[2]) phone = cols[2];
-                        if (!ref || ref.includes('/')) ref = cols[3] && !cols[3].includes('/') ? cols[3] : 'Direto';
-                        if (points === 0 && !isNaN(cols[4])) points = parseInt(cols[4]) || 0;
-                        if (days === 60 && !isNaN(cols[5])) days = parseInt(cols[5]) || 60;
-                        if (!finance && cols[6]) finance = cols[6];
-                        if (!notes && cols[7]) notes = cols[7];
-                        imported.push({ id: id, name: name || `Cliente ${i}`, phone: phone || '', ref: ref || 'Direto', points: points, days: days, finance: finance || '', notes: notes || '' });
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+
+                    // Pega a primeira aba da planilha do Excel
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+
+                    // Converte os dados da planilha em uma lista JSON limpa
+                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    let imported = [];
+                    // Começa da linha 1 para pular o cabeçalho
+                    for (let i = 1; i < jsonRows.length; i++) {
+                        const cols = jsonRows[i];
+                        if (!cols || cols.length === 0) continue;
+
+                        let id = cols[0] && String(cols[0]).startsWith('EB-') ? String(cols[0]) : `EB-100${i}`;
+                        let name = cols[1] ? String(cols[1]) : `Cliente ${i}`;
+                        let phone = cols[2] ? String(cols[2]).replace(/\D/g, '') : '';
+                        let ref = cols[3] ? String(cols[3]) : 'Direto';
+                        let points = cols[4] && !isNaN(cols[4]) ? parseInt(cols[4]) : 0;
+                        let days = cols[5] && !isNaN(cols[5]) ? parseInt(cols[5]) : 60;
+                        let finance = cols[6] ? String(cols[6]) : '';
+                        let notes = cols[7] ? String(cols[7]) : '';
+
+                        imported.push({ id: id, name: name, phone: phone, ref: ref, points: points, days: days, finance: finance, notes: notes });
                     }
+
+                    if(imported.length > 0) {
+                        clientsList = imported;
+                        renderTableAndSelect();
+                        selectClientByIndex(0);
+                        alert(`Sucesso! ${imported.length} clientes foram importadas do seu arquivo XLSX para o painel!`);
+                    } else {
+                        alert("A planilha parece estar vazia ou fora do formato esperado.");
+                    }
+                } catch (error) {
+                    alert("Erro ao ler o arquivo XLSX. Certifique-se de que é uma planilha válida.");
+                    console.error(error);
                 }
-                if(imported.length > 0) {
-                    clientsList = imported;
-                    renderTableAndSelect();
-                    selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas e salvas com sucesso no celular!`);
-                } else { alert("Não foi possível ler os dados. Verifique o arquivo CSV."); }
             };
+            reader.readAsArrayBuffer(file);
         }
+
         renderTableAndSelect();
         selectClientByIndex(0);
     </script>
