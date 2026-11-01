@@ -74,10 +74,10 @@
             cursor: pointer;
         }
         .chart-toggle-btn.active {
-            background: #e5c158;
-            color: #101217;
+            background: #0088ff;
+            color: #ffffff;
             font-weight: bold;
-            border-color: #e5c158;
+            border-color: #0088ff;
         }
         .grid-layout {
             display: grid;
@@ -135,7 +135,8 @@
         .btn-cyan { background: #00d2d3; color: #101217; flex: 1; }
         .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; }
         .btn-green { background: #2ecc71; color: #ffffff; width: 100%; }
-        .btn-excel { background: #107c41; color: #ffffff; padding: 6px 14px; font-size: 12px; }
+        .btn-excel { background: #107c41; color: #ffffff; padding: 6px 12px; font-size: 12px; }
+        .btn-import { background: #8e44ad; color: #ffffff; padding: 6px 12px; font-size: 12px; }
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
         .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
         
@@ -196,17 +197,17 @@
             <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
         </div>
 
-        <!-- Gráfico de Barras com Alternador Semanal / Mensal -->
+        <!-- Gráfico Focado em Indicações (Semanal / Mensal) -->
         <div class="chart-box">
             <div class="chart-header">
-                <span style="font-size: 14px; font-weight: bold; color: #e5c158;">📊 Desempenho dos Atendimentos</span>
+                <span style="font-size: 14px; font-weight: bold; color: #0088ff;">👥 Pessoas que Vieram por Indicação</span>
                 <div>
                     <button id="btnWeekly" class="chart-toggle-btn active" onclick="switchChart('weekly')">Semanal</button>
                     <button id="btnMonthly" class="chart-toggle-btn" onclick="switchChart('monthly')">Mensal</button>
                 </div>
             </div>
             <div style="height: 210px;">
-                <canvas id="attendanceChart"></canvas>
+                <canvas id="referralChart"></canvas>
             </div>
         </div>
 
@@ -274,13 +275,16 @@
             </div>
         </div>
 
-        <!-- Tabela de Clientes Cadastrados & Exportação para Excel -->
+        <!-- Tabela & Botões de Excel (Importar / Exportar) -->
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-excel" onclick="exportToExcel()">📊 Exportar para Excel (.CSV)</button>
-                    <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova Cliente</button>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <!-- Input invisível para importar arquivo Excel/CSV -->
+                    <input type="file" id="excelFile" accept=".csv" style="display:none" onchange="importFromExcel(event)">
+                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar do Excel</button>
+                    <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
+                    <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova</button>
                 </div>
             </div>
             <table>
@@ -315,28 +319,28 @@
         let currentDays = 60;
         let totalClients = 1;
 
-        // Dados dos Gráficos
-        const weeklyData = {
+        // Dados do Gráfico focados exclusivamente em Indicações
+        const weeklyReferrals = {
             labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-            data: [3, 7, 4, 8, 9, 12]
+            data: [1, 3, 2, 4, 5, 6]
         };
 
-        const monthlyData = {
+        const monthlyReferrals = {
             labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-            data: [22, 35, 40, 38, 55, 60, 48, 52, 65, 70, 45, 80]
+            data: [8, 12, 15, 14, 20, 25, 18, 22, 28, 30, 19, 35]
         };
 
-        // Inicializa o Gráfico de Barras
-        const ctx = document.getElementById('attendanceChart').getContext('2d');
-        const attendanceChart = new Chart(ctx, {
+        // Inicializa o Gráfico de Indicações
+        const ctx = document.getElementById('referralChart').getContext('2d');
+        const referralChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: weeklyData.labels,
+                labels: weeklyReferrals.labels,
                 datasets: [{
-                    label: 'Atendimentos',
-                    data: weeklyData.data,
-                    backgroundColor: 'rgba(229, 193, 88, 0.8)',
-                    borderColor: '#e5c158',
+                    label: 'Indicações Recebidas',
+                    data: weeklyReferrals.data,
+                    backgroundColor: 'rgba(0, 136, 255, 0.8)',
+                    borderColor: '#0088ff',
                     borderWidth: 1,
                     borderRadius: 6
                 }]
@@ -354,20 +358,20 @@
             }
         });
 
-        // Alterna entre Gráfico Semanal e Mensal
+        // Alterna entre Gráfico Semanal e Mensal de Indicações
         function switchChart(view) {
             if(view === 'weekly') {
                 document.getElementById('btnWeekly').classList.add('active');
                 document.getElementById('btnMonthly').classList.remove('active');
-                attendanceChart.data.labels = weeklyData.labels;
-                attendanceChart.data.datasets[0].data = weeklyData.data;
+                referralChart.data.labels = weeklyReferrals.labels;
+                referralChart.data.datasets[0].data = weeklyReferrals.data;
             } else {
                 document.getElementById('btnMonthly').classList.add('active');
                 document.getElementById('btnWeekly').classList.remove('active');
-                attendanceChart.data.labels = monthlyData.labels;
-                attendanceChart.data.datasets[0].data = monthlyData.data;
+                referralChart.data.labels = monthlyReferrals.labels;
+                referralChart.data.datasets[0].data = monthlyReferrals.data;
             }
-            attendanceChart.update();
+            referralChart.update();
         }
 
         function updateDisplay() {
@@ -380,10 +384,6 @@
         function addPoints(pts) {
             currentPoints = Math.max(0, currentPoints + pts);
             updateDisplay();
-            if(pts > 0) {
-                weeklyData.data[5] += 1;
-                attendanceChart.update();
-            }
         }
 
         function resetPoints() {
@@ -418,7 +418,27 @@
                 document.getElementById('clientId').value = "EB-100" + totalClients;
                 currentPoints = 0;
                 updateDisplay();
-                alert("Nova cliente cadastrada e pronta para lançamento!");
+
+                // Se veio por indicação, atualiza o gráfico de indicações do sábado
+                if(ref !== "Direto") {
+                    weeklyReferrals.data[5] += 1;
+                    referralChart.update();
+                }
+
+                // Adiciona na tabela visual
+                const tbody = document.getElementById('clientTableBody');
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>EB-100${totalClients}</td>
+                    <td>${name}</td>
+                    <td>${phone || '-'}</td>
+                    <td><span class="badge-ref">${ref}</span></td>
+                    <td>0/10</td>
+                    <td>60 dias</td>
+                    <td><button class="btn-edit" onclick="loadSelectedClient()">Editar</button></td>
+                `;
+                tbody.appendChild(newRow);
+                alert("Nova cliente cadastrada com sucesso!");
             }
         }
 
@@ -452,6 +472,51 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        // Importação de Contatos de outra planilha Excel (formato .CSV)
+        function importFromExcel(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const lines = text.split('\n');
+                const tbody = document.getElementById('clientTableBody');
+                
+                let importedCount = 0;
+                // Começa do 1 para pular o cabeçalho
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if(!line) continue;
+                    
+                    const cols = line.split(',');
+                    if(cols.length >= 3) {
+                        totalClients++;
+                        importedCount++;
+                        const name = cols[1] ? cols[1].replace(/"/g, '') : 'Cliente';
+                        const phone = cols[2] ? cols[2].replace(/"/g, '') : '';
+                        const ref = cols[3] ? cols[3].replace(/"/g, '') : 'Direto';
+                        const pts = cols[4] ? cols[4].replace(/"/g, '') : '0';
+
+                        const newRow = document.createElement('tr');
+                        newRow.innerHTML = `
+                            <td>EB-100${totalClients}</td>
+                            <td>${name}</td>
+                            <td>${phone}</td>
+                            <td><span class="badge-ref">${ref}</span></td>
+                            <td>${pts}/10</td>
+                            <td>60 dias</td>
+                            <td><button class="btn-edit" onclick="alert('Cliente selecionada!')">Editar</button></td>
+                        `;
+                        tbody.appendChild(newRow);
+                    }
+                }
+                updateDisplay();
+                alert(`${importedCount} clientes importadas com sucesso da planilha anterior!`);
+            };
+            reader.readAsText(file);
         }
     </script>
 </body>
