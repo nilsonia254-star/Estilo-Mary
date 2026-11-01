@@ -217,19 +217,18 @@
                 <div class="section-title">Gerenciar Cliente</div>
                 
                 <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
-                <select id="selectClient" onchange="loadSelectedClient()">
+                <select id="selectClient" onchange="loadClientFromSelect()">
                     <option value="">-- Selecione uma cliente --</option>
-                    <option value="EB-1001">[EB-1001] Mariana dos santos (1/10 pts)</option>
                 </select>
 
-                <label for="clientId">ID do Cliente (Automático / Busca):</label>
+                <label for="clientId">ID do Cliente:</label>
                 <input type="text" id="clientId" value="EB-1001" readonly>
 
                 <label for="clientName">Nome Completo da Cliente:</label>
-                <input type="text" id="clientName" value="Mariana dos santos">
+                <input type="text" id="clientName" placeholder="Nome da cliente">
 
-                <label for="clientPhone">WhatsApp com DDD (Ex: 11987654321):</label>
-                <input type="text" id="clientPhone" value="11967066029">
+                <label for="clientPhone">WhatsApp com DDD:</label>
+                <input type="text" id="clientPhone" placeholder="11987654321">
 
                 <label for="referredBy">Veio por Indicação de (Opcional):</label>
                 <input type="text" id="referredBy" placeholder="Ex: Natália ou Direto">
@@ -263,7 +262,6 @@
                     <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 15px;">
                     <button class="btn btn-gold" style="width: auto;" onclick="alert('Validade ajustada!')">Fixar Dias</button>
                 </div>
-                <span style="font-size: 11px; color: #707585; display: block; margin-top: 4px;">Prazo padrão: 60 dias para completar o cartão.</span>
 
                 <label style="margin-top: 15px; color: #ff6b6b;">Correção de Pontos:</label>
                 <div class="btn-group">
@@ -275,14 +273,13 @@
             </div>
         </div>
 
-        <!-- Tabela & Botões de Excel (Importar / Exportar) -->
+        <!-- Tabela & Botões de Excel -->
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <!-- Input ajustado para aceitar qualquer arquivo Excel (.xlsx, .xls) ou .csv -->
-                    <input type="file" id="excelFile" accept=".csv, .xlsx, .xls" style="display:none" onchange="importFromExcel(event)">
-                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar do Excel</button>
+                    <input type="file" id="excelFile" accept=".csv" style="display:none" onchange="importFromCSV(event)">
+                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar CSV do Excel</button>
                     <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
                     <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova</button>
                 </div>
@@ -300,34 +297,20 @@
                     </tr>
                 </thead>
                 <tbody id="clientTableBody">
-                    <tr>
-                        <td>EB-1001</td>
-                        <td>Mariana dos santos</td>
-                        <td>11967066029</td>
-                        <td><span class="badge-ref">Direto</span></td>
-                        <td><span id="tbPoints">1</span>/10</td>
-                        <td><span id="tbDays">60</span> dias</td>
-                        <td><button class="btn-edit" onclick="loadSelectedClient()">Editar</button></td>
-                    </tr>
+                    <!-- Preenchido dinamicamente -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        let currentPoints = 1;
-        let currentDays = 60;
-        let totalClients = 1;
+        // Lista principal de clientes armazenada na memória
+        let clientsList = [
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60 }
+        ];
 
-        const weeklyReferrals = {
-            labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
-            data: [1, 3, 2, 4, 5, 6]
-        };
-
-        const monthlyReferrals = {
-            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
-            data: [8, 12, 15, 14, 20, 25, 18, 22, 28, 30, 19, 35]
-        };
+        const weeklyReferrals = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], data: [1, 3, 2, 4, 5, 6] };
+        const monthlyReferrals = { labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'], data: [8, 12, 15, 14, 20, 25, 18, 22, 28, 30, 19, 35] };
 
         const ctx = document.getElementById('referralChart').getContext('2d');
         const referralChart = new Chart(ctx, {
@@ -346,9 +329,7 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
                     x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } },
                     y: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' }, beginAtZero: true }
@@ -371,35 +352,102 @@
             referralChart.update();
         }
 
-        function updateDisplay() {
-            document.getElementById('tbPoints').innerText = currentPoints;
-            document.getElementById('tbDays').innerText = currentDays;
-            document.getElementById('validityDays').value = currentDays;
-            document.getElementById('totalClientsCount').innerText = totalClients;
+        // Atualiza a tabela visual e o menu de seleção com base na lista de clientes
+        function renderTableAndSelect() {
+            const tbody = document.getElementById('clientTableBody');
+            const select = document.getElementById('selectClient');
+            tbody.innerHTML = '';
+            select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
+
+            clientsList.forEach((client, index) => {
+                // Preenche a tabela
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${client.id}</td>
+                    <td>${client.name}</td>
+                    <td>${client.phone || '-'}</td>
+                    <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
+                    <td>${client.points}/10</td>
+                    <td>${client.days} dias</td>
+                    <td><button class="btn-edit" onclick="selectClientByIndex(${index})">Editar</button></td>
+                `;
+                tbody.appendChild(tr);
+
+                // Preenche o menu suspenso de Gerenciar Cliente
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.text = `[${client.id}] ${client.name} (${client.points}/10 pts)`;
+                select.appendChild(opt);
+            });
+
+            document.getElementById('totalClientsCount').innerText = clientsList.length;
+        }
+
+        let currentIndex = 0;
+
+        function selectClientByIndex(index) {
+            currentIndex = index;
+            const c = clientsList[index];
+            document.getElementById('selectClient').value = index;
+            document.getElementById('clientId').value = c.id;
+            document.getElementById('clientName').value = c.name;
+            document.getElementById('clientPhone').value = c.phone;
+            document.getElementById('referredBy').value = c.ref;
+            document.getElementById('validityDays').value = c.days;
+        }
+
+        function loadClientFromSelect() {
+            const index = document.getElementById('selectClient').value;
+            if (index !== "") {
+                selectClientByIndex(parseInt(index));
+            }
         }
 
         function addPoints(pts) {
-            currentPoints = Math.max(0, currentPoints + pts);
-            updateDisplay();
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
         }
 
         function resetPoints() {
-            currentPoints = 0;
-            updateDisplay();
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].points = 0;
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
         }
 
         function adjustDays(days) {
-            currentDays = Math.max(0, currentDays + days);
-            updateDisplay();
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].days = Math.max(0, clientsList[currentIndex].days + days);
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
         }
 
         function saveClient() {
-            alert("Cliente " + document.getElementById('clientName').value + " salva com sucesso!");
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].name = document.getElementById('clientName').value;
+                clientsList[currentIndex].phone = document.getElementById('clientPhone').value;
+                clientsList[currentIndex].ref = document.getElementById('referredBy').value || 'Direto';
+                renderTableAndSelect();
+                alert("Dados da cliente atualizados com sucesso!");
+            }
         }
 
         function deleteClient() {
-            if(confirm("Deseja realmente eliminar esta cliente?")) {
-                alert("Cliente removida.");
+            if(clientsList.length > 1) {
+                if(confirm("Deseja realmente eliminar esta cliente?")) {
+                    clientsList.splice(currentIndex, 1);
+                    currentIndex = 0;
+                    renderTableAndSelect();
+                    selectClientByIndex(0);
+                    alert("Cliente removida.");
+                }
+            } else {
+                alert("Você não pode excluir a última cliente restante.");
             }
         }
 
@@ -408,67 +456,42 @@
             if(name) {
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
                 const ref = prompt("Quem indicou essa cliente? (Deixe em branco se for atendimento direto):") || "Direto";
-                totalClients++;
-                document.getElementById('clientName').value = name;
-                document.getElementById('clientPhone').value = phone || "";
-                document.getElementById('referredBy').value = ref;
-                document.getElementById('clientId').value = "EB-100" + totalClients;
-                currentPoints = 0;
-                updateDisplay();
-
-                if(ref !== "Direto") {
-                    weeklyReferrals.data[5] += 1;
-                    referralChart.update();
-                }
-
-                const tbody = document.getElementById('clientTableBody');
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>EB-100${totalClients}</td>
-                    <td>${name}</td>
-                    <td>${phone || '-'}</td>
-                    <td><span class="badge-ref">${ref}</span></td>
-                    <td>0/10</td>
-                    <td>60 dias</td>
-                    <td><button class="btn-edit" onclick="loadSelectedClient()">Editar</button></td>
-                `;
-                tbody.appendChild(newRow);
+                
+                const newId = "EB-100" + (clientsList.length + 1);
+                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60 });
+                
+                renderTableAndSelect();
+                selectClientByIndex(clientsList.length - 1);
                 alert("Nova cliente cadastrada com sucesso!");
             }
         }
 
         function sendWhatsApp() {
-            const name = document.getElementById('clientName').value;
-            const phone = document.getElementById('clientPhone').value;
-            const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-            const fullLink = `${baseUrl}?nome=${encodeURIComponent(name)}&pontos=${currentPoints}&data=01/11/2026`;
-            
-            const msg = `Olá ${name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${currentPoints} pontos! Acesse aqui: ${fullLink}`;
-            window.open(`https://api.whatsapp.com/send?phone=55${phone}&text=${encodeURIComponent(msg)}`, '_blank');
-        }
-
-        function loadSelectedClient() {
-            document.getElementById('clientId').value = "EB-1001";
-            document.getElementById('clientName').value = "Mariana dos santos";
-            document.getElementById('clientPhone').value = "11967066029";
-            document.getElementById('referredBy').value = "Direto";
+            if(clientsList.length > 0) {
+                const c = clientsList[currentIndex];
+                const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
+                const fullLink = `${baseUrl}?nome=${encodeURIComponent(c.name)}&pontos=${c.points}&data=01/11/2026`;
+                
+                const msg = `Olá ${c.name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Acesse aqui: ${fullLink}`;
+                window.open(`https://wa.me/55${c.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+            }
         }
 
         function exportToExcel() {
             let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias)\n';
-            csv += `EB-1001,"Mariana dos santos","11967066029","Direto",${currentPoints},${currentDays}\n`;
+            clientsList.forEach(c => {
+                csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days}\n`;
+            });
             
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            link.setAttribute("href", url);
-            link.setAttribute("download", `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`);
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(blob);
+            link.download = `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
-            document.body.removeChild(link);
         }
 
-        function importFromExcel(event) {
+        // Importação limpa e segura por CSV gerado pelo Excel
+        function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -476,40 +499,40 @@
             reader.onload = function(e) {
                 const text = e.target.result;
                 const lines = text.split('\n');
-                const tbody = document.getElementById('clientTableBody');
-                
-                let importedCount = 0;
+                let imported = [];
+
                 for (let i = 1; i < lines.length; i++) {
                     const line = lines[i].trim();
                     if(!line) continue;
                     
                     const cols = line.split(',');
                     if(cols.length >= 3) {
-                        totalClients++;
-                        importedCount++;
-                        const name = cols[1] ? cols[1].replace(/"/g, '') : 'Cliente';
-                        const phone = cols[2] ? cols[2].replace(/"/g, '') : '';
-                        const ref = cols[3] ? cols[3].replace(/"/g, '') : 'Direto';
-                        const pts = cols[4] ? cols[4].replace(/"/g, '') : '0';
-
-                        const newRow = document.createElement('tr');
-                        newRow.innerHTML = `
-                            <td>EB-100${totalClients}</td>
-                            <td>${name}</td>
-                            <td>${phone}</td>
-                            <td><span class="badge-ref">${ref}</span></td>
-                            <td>${pts}/10</td>
-                            <td>60 dias</td>
-                            <td><button class="btn-edit" onclick="alert('Cliente selecionada!')">Editar</button></td>
-                        `;
-                        tbody.appendChild(newRow);
+                        imported.push({
+                            id: cols[0] ? cols[0].replace(/"/g, '').trim() : `EB-100${i+1}`,
+                            name: cols[1] ? cols[1].replace(/"/g, '').trim() : 'Cliente',
+                            phone: cols[2] ? cols[2].replace(/"/g, '').trim() : '',
+                            ref: cols[3] ? cols[3].replace(/"/g, '').trim() : 'Direto',
+                            points: parseInt(cols[4]) || 0,
+                            days: parseInt(cols[5]) || 60
+                        });
                     }
                 }
-                updateDisplay();
-                alert(`${importedCount} clientes importadas com sucesso!`);
+
+                if(imported.length > 0) {
+                    clientsList = imported;
+                    renderTableAndSelect();
+                    selectClientByIndex(0);
+                    alert(`${imported.length} clientes importadas com sucesso para o painel!`);
+                } else {
+                    alert("Não foi possível ler os dados. Certifique-se de salvar o Excel como arquivo CSV (Separado por vírgulas).");
+                }
             };
-            reader.readAsText(file);
+            reader.readAsText(file, 'UTF-8');
         }
+
+        // Inicializa a tela com a cliente padrão
+        renderTableAndSelect();
+        selectClientByIndex(0);
     </script>
 </body>
 </html>
