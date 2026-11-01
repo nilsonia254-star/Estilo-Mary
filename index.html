@@ -78,7 +78,6 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        /* Grid de quadradinhos dos pontos (1 a 10) */
         .stamps-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -161,8 +160,8 @@
         <div class="brand-subtitle">Cartão Fidelidade Digital</div>
 
         <div class="welcome-box">
-            <div class="welcome-name" id="displayName">Olá, Cliente! 💖</div>
-            <div class="welcome-status" id="displayStatus">Acompanhe seus pontos e benefícios abaixo.</div>
+            <div class="welcome-name" id="displayName">Olá! 💖</div>
+            <div class="welcome-status" id="displayStatus">Acompanhe seus pontos abaixo.</div>
         </div>
 
         <div class="points-display">
@@ -170,10 +169,7 @@
             <div class="points-label">Pontos Acumulados</div>
         </div>
 
-        <!-- 10 quadradinhos dos pontos -->
-        <div class="stamps-grid" id="stampsGrid">
-            <!-- Gerado via JavaScript -->
-        </div>
+        <div class="stamps-grid" id="stampsGrid"></div>
 
         <div class="total-box">
             <span>TOTAL ACUMULADO</span>
@@ -202,20 +198,26 @@
     </div>
 
     <script>
-        // Pega os dados direto do link enviado pelo painel (Ex: ?nome=Maria&id=EB-1002&pontos=5)
+        // Leitura limpa e direta dos dados enviados pelo painel
         const urlParams = new URLSearchParams(window.location.search);
-        const clientName = urlParams.get('nome') || 'Cliente';
-        const clientId = urlParams.get('id') || 'EB-1001';
-        let clientPoints = parseInt(urlParams.get('pontos')) || 0;
+        
+        let clientName = urlParams.get('nome');
+        let clientId = urlParams.get('id') || 'EB-1001';
+        let clientPoints = parseInt(urlParams.get('pontos'));
 
-        // Atualiza os textos na tela com os dados reais
+        // Se faltar algum dado na URL, assume valores seguros zerados em vez de dados fixos antigos
+        if (!clientName) clientName = "Cliente";
+        if (isNaN(clientPoints)) clientPoints = 0;
+
+        // Atualiza os elementos na tela do cliente
         document.getElementById('displayName').innerText = `Olá, ${clientName}! 💖`;
         document.getElementById('displayPointsNum').innerText = clientPoints;
         document.getElementById('totalPointsText').innerText = `${clientPoints} PTS`;
-        document.getElementById('displayStatus').innerText = `ID do Cartão: ${clientId} • Atualizado hoje`;
+        document.getElementById('displayStatus').innerText = `ID: ${clientId} • Cartão atualizado`;
 
-        // Desenha os 10 quadradinhos de pontos e acende os que a cliente já conquistou
+        // Desenha os 10 quadradinhos e acende exatamente a quantidade de pontos da cliente
         const grid = document.getElementById('stampsGrid');
+        grid.innerHTML = '';
         for (let i = 1; i <= 10; i++) {
             const div = document.createElement('div');
             div.className = `stamp ${i <= clientPoints ? 'active' : ''}`;
@@ -223,7 +225,6 @@
             grid.appendChild(div);
         }
 
-        // Função para a cliente indicar amigas usando o link personalizado dela
         function shareReferral(e) {
             e.preventDefault();
             const referralLink = `https://nilsonia254-star.github.io/Estilo-Mary/?indica=${clientId}`;
