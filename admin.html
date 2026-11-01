@@ -66,6 +66,27 @@
         input:focus, select:focus {
             border-color: #e5c158;
         }
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn-quick {
+            background: #1f1f1f;
+            border: 1px solid #444444;
+            color: #f7e196;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-quick:hover {
+            background: #332d12;
+            border-color: #e5c158;
+        }
         .btn {
             display: block;
             width: 100%;
@@ -129,25 +150,40 @@
         </div>
 
         <div class="form-group">
-            <label for="clientPoints">Quantidade de Pontos Atuais:</label>
-            <input type="number" id="clientPoints" placeholder="Ex: 13">
+            <label for="clientPoints">Quantidade Total de Pontos:</label>
+            <input type="number" id="clientPoints" placeholder="Ex: 5" value="0">
         </div>
 
         <div class="form-group">
-            <label for="lastUpdate">Data da Última Atualização:</label>
+            <label>Adicionar pontos rápido:</label>
+            <div class="quick-buttons">
+                <button type="button" class="btn-quick" onclick="addPoints(1)">+1 Ponto</button>
+                <button type="button" class="btn-quick" onclick="addPoints(3)">+3 Pontos</button>
+                <button type="button" class="btn-quick" onclick="addPoints(5)">+5 Pontos</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="lastUpdate">Data da Atualização:</label>
             <input type="text" id="lastUpdate" value="31/10/2026">
         </div>
 
-        <button class="btn btn-primary" onclick="generateCardLink()">Gerar Link Personalizado da Cliente</button>
+        <button class="btn btn-primary" onclick="generateCardLink()">Gerar Link Personalizado</button>
 
         <div id="resultSection" class="result-box">
             <h3>Link gerado com sucesso!</h3>
             <span id="generatedLink" class="result-link"></span>
-            <a id="whatsappShareBtn" href="#" class="btn btn-whatsapp" target="_blank">📲 Enviar Cartão para a Cliente</a>
+            <a id="whatsappShareBtn" href="#" class="btn btn-whatsapp" target="_blank">📲 Enviar Cartão no WhatsApp</a>
         </div>
     </div>
 
     <script>
+        function addPoints(amount) {
+            const pointsInput = document.getElementById('clientPoints');
+            let current = parseInt(pointsInput.value) || 0;
+            pointsInput.value = current + amount;
+        }
+
         function generateCardLink() {
             const name = document.getElementById('clientName').value.trim() || 'Cliente';
             const points = document.getElementById('clientPoints').value.trim() || '0';
@@ -163,7 +199,7 @@
             document.getElementById('generatedLink').innerText = fullLink;
             
             // Mensagem pronta para enviar no WhatsApp da cliente
-            const msg = `Olá ${name}! Seu Cartão Fidelidade no Designer Estilo Mary está com ${points} pontos! Acesse aqui: ${fullLink}`;
+            const msg = `Olá ${name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary foi atualizado para ${points} pontos! Acesse aqui: ${fullLink}`;
             document.getElementById('whatsappShareBtn').href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
             document.getElementById('resultSection').style.display = 'block';
