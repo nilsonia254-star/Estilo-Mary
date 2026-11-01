@@ -22,7 +22,7 @@
         }
         .dashboard-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
             background: #14161d;
             border-radius: 16px;
             padding: 24px;
@@ -37,6 +37,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .counter-badge {
             background: #1a1d26;
@@ -53,7 +55,29 @@
             border-radius: 12px;
             padding: 16px;
             margin-bottom: 24px;
-            height: 240px;
+            height: 280px;
+            position: relative;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .chart-toggle-btn {
+            background: #101217;
+            border: 1px solid #2a2e3d;
+            color: #a0a6b8;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .chart-toggle-btn.active {
+            background: #e5c158;
+            color: #101217;
+            font-weight: bold;
+            border-color: #e5c158;
         }
         .grid-layout {
             display: grid;
@@ -111,6 +135,7 @@
         .btn-cyan { background: #00d2d3; color: #101217; flex: 1; }
         .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; }
         .btn-green { background: #2ecc71; color: #ffffff; width: 100%; }
+        .btn-excel { background: #107c41; color: #ffffff; padding: 6px 14px; font-size: 12px; }
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
         .btn-blue { background: #0088ff; color: #ffffff; width: 100%; margin-top: 10px; }
         
@@ -119,17 +144,21 @@
             margin-top: 24px;
             border-top: 1px solid #232733;
             padding-top: 20px;
+            overflow-x: auto;
         }
         .table-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
+            min-width: 650px;
         }
         th, td {
             padding: 10px;
@@ -149,6 +178,14 @@
             font-weight: bold;
             cursor: pointer;
         }
+        .badge-ref {
+            background: #0088ff22;
+            color: #0088ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            border: 1px solid #0088ff44;
+        }
     </style>
 </head>
 <body>
@@ -159,9 +196,18 @@
             <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
         </div>
 
-        <!-- Gráfico de Barras de Atendimentos -->
+        <!-- Gráfico de Barras com Alternador Semanal / Mensal -->
         <div class="chart-box">
-            <canvas id="attendanceChart"></canvas>
+            <div class="chart-header">
+                <span style="font-size: 14px; font-weight: bold; color: #e5c158;">📊 Desempenho dos Atendimentos</span>
+                <div>
+                    <button id="btnWeekly" class="chart-toggle-btn active" onclick="switchChart('weekly')">Semanal</button>
+                    <button id="btnMonthly" class="chart-toggle-btn" onclick="switchChart('monthly')">Mensal</button>
+                </div>
+            </div>
+            <div style="height: 210px;">
+                <canvas id="attendanceChart"></canvas>
+            </div>
         </div>
 
         <div class="grid-layout">
@@ -183,6 +229,9 @@
 
                 <label for="clientPhone">WhatsApp com DDD (Ex: 11987654321):</label>
                 <input type="text" id="clientPhone" value="11967066029">
+
+                <label for="referredBy">Veio por Indicação de (Opcional):</label>
+                <input type="text" id="referredBy" placeholder="Ex: Natália ou Direto">
 
                 <div class="btn-group" style="margin-top: 15px;">
                     <button class="btn btn-green" onclick="saveClient()">💾 Salvar / Atualizar</button>
@@ -225,11 +274,14 @@
             </div>
         </div>
 
-        <!-- Tabela de Clientes Cadastrados -->
+        <!-- Tabela de Clientes Cadastrados & Exportação para Excel -->
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
-                <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova Cliente</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-excel" onclick="exportToExcel()">📊 Exportar para Excel (.CSV)</button>
+                    <button class="btn btn-gold" style="padding: 6px 14px; font-size: 12px;" onclick="addNewClientPrompt()">➕ Cadastrar Nova Cliente</button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -237,9 +289,9 @@
                         <th>ID</th>
                         <th>Nome</th>
                         <th>WhatsApp</th>
+                        <th>Indicada por</th>
                         <th>Pontos</th>
-                        <th>Validade (Dias)</th>
-                        <th>Cartão Expira Em</th>
+                        <th>Validade</th>
                         <th>Ação</th>
                     </tr>
                 </thead>
@@ -248,9 +300,9 @@
                         <td>EB-1001</td>
                         <td>Mariana dos santos</td>
                         <td>11967066029</td>
+                        <td><span class="badge-ref">Direto</span></td>
                         <td><span id="tbPoints">1</span>/10</td>
                         <td><span id="tbDays">60</span> dias</td>
-                        <td>31/12/2026</td>
                         <td><button class="btn-edit" onclick="loadSelectedClient()">Editar</button></td>
                     </tr>
                 </tbody>
@@ -263,15 +315,26 @@
         let currentDays = 60;
         let totalClients = 1;
 
-        // Configuração do Gráfico de Barras de Atendimentos
+        // Dados dos Gráficos
+        const weeklyData = {
+            labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+            data: [3, 7, 4, 8, 9, 12]
+        };
+
+        const monthlyData = {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+            data: [22, 35, 40, 38, 55, 60, 48, 52, 65, 70, 45, 80]
+        };
+
+        // Inicializa o Gráfico de Barras
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         const attendanceChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+                labels: weeklyData.labels,
                 datasets: [{
-                    label: 'Atendimentos da Semana',
-                    data: [3, 7, 4, 8, 9, 12],
+                    label: 'Atendimentos',
+                    data: weeklyData.data,
                     backgroundColor: 'rgba(229, 193, 88, 0.8)',
                     borderColor: '#e5c158',
                     borderWidth: 1,
@@ -282,7 +345,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: '#a0a6b8' } }
+                    legend: { display: false }
                 },
                 scales: {
                     x: { ticks: { color: '#a0a6b8' }, grid: { color: '#232733' } },
@@ -290,6 +353,22 @@
                 }
             }
         });
+
+        // Alterna entre Gráfico Semanal e Mensal
+        function switchChart(view) {
+            if(view === 'weekly') {
+                document.getElementById('btnWeekly').classList.add('active');
+                document.getElementById('btnMonthly').classList.remove('active');
+                attendanceChart.data.labels = weeklyData.labels;
+                attendanceChart.data.datasets[0].data = weeklyData.data;
+            } else {
+                document.getElementById('btnMonthly').classList.add('active');
+                document.getElementById('btnWeekly').classList.remove('active');
+                attendanceChart.data.labels = monthlyData.labels;
+                attendanceChart.data.datasets[0].data = monthlyData.data;
+            }
+            attendanceChart.update();
+        }
 
         function updateDisplay() {
             document.getElementById('tbPoints').innerText = currentPoints;
@@ -302,7 +381,7 @@
             currentPoints = Math.max(0, currentPoints + pts);
             updateDisplay();
             if(pts > 0) {
-                attendanceChart.data.datasets[0].data[5] += 1;
+                weeklyData.data[5] += 1;
                 attendanceChart.update();
             }
         }
@@ -331,9 +410,11 @@
             const name = prompt("Digite o nome da nova cliente:");
             if(name) {
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
+                const ref = prompt("Quem indicou essa cliente? (Deixe em branco se for atendimento direto):") || "Direto";
                 totalClients++;
                 document.getElementById('clientName').value = name;
                 document.getElementById('clientPhone').value = phone || "";
+                document.getElementById('referredBy').value = ref;
                 document.getElementById('clientId').value = "EB-100" + totalClients;
                 currentPoints = 0;
                 updateDisplay();
@@ -355,6 +436,22 @@
             document.getElementById('clientId').value = "EB-1001";
             document.getElementById('clientName').value = "Mariana dos santos";
             document.getElementById('clientPhone').value = "11967066029";
+            document.getElementById('referredBy').value = "Direto";
+        }
+
+        // Exportação Completa para Excel (.CSV)
+        function exportToExcel() {
+            let csv = 'ID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias)\n';
+            csv += `EB-1001,"Mariana dos santos","11967066029","Direto",${currentPoints},${currentDays}\n`;
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
