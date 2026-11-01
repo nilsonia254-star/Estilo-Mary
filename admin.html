@@ -467,14 +467,28 @@
             }
         }
 
+        // Função de envio corrigida para abrir o WhatsApp corretamente sem erro 404
         function sendWhatsApp() {
             if(clientsList.length > 0) {
                 const c = clientsList[currentIndex];
+                if (!c.phone) {
+                    alert("Esta cliente não possui número de WhatsApp cadastrado!");
+                    return;
+                }
+                
+                // Limpa o telefone deixando apenas números
+                let phoneClean = c.phone.replace(/\D/g, '');
+                if (!phoneClean.startsWith('55')) {
+                    phoneClean = '55' + phoneClean;
+                }
+
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
                 const fullLink = `${baseUrl}?nome=${encodeURIComponent(c.name)}&id=${c.id}&pontos=${c.points}&data=01/11/2026`;
                 
                 const msg = `Olá ${c.name}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
-                window.open(`https://wa.me/55${c.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                
+                const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
+                window.open(waUrl, '_blank');
             }
         }
 
@@ -491,7 +505,6 @@
             link.click();
         }
 
-        // Importação inteligente garantindo a leitura correta dos pontos e dos novos campos financeiros
         function importFromCSV(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -519,7 +532,6 @@
                         let finance = '';
                         let notes = '';
 
-                        // Varredura para mapear com segurança os campos corretos
                         cols.forEach(val => {
                             if (!val) return;
                             if (val.startsWith('EB-')) {
@@ -541,7 +553,6 @@
                             }
                         });
 
-                        // Fallback por colunas da tabela exportada
                         if (!name && cols[1]) name = cols[1];
                         if (!phone && cols[2]) phone = cols[2];
                         if (!ref || ref.includes('/')) ref = cols[3] && !cols[3].includes('/') ? cols[3] : 'Direto';
@@ -567,7 +578,7 @@
                     clientsList = imported;
                     renderTableAndSelect();
                     selectClientByIndex(0);
-                    alert(`${imported.length} clientes importadas com sucesso, incluindo os dados financeiros e pontos!`);
+                    alert(`${imported.length} clientes importadas com sucesso!`);
                 } else {
                     alert("Não foi possível ler os dados. Verifique o arquivo CSV.");
                 }
