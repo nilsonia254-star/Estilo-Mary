@@ -68,11 +68,12 @@
             Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
         </div>
 
-        <!-- Botão WhatsApp com o número correto e completo da Mariana -->
+        <!-- Botão de Agendamento (Vai para o WhatsApp da Mariana) -->
         <a id="whatsappBtn" href="#" target="_blank" class="action-btn btn-whatsapp">
             📅 Agende: WhatsApp (11) 96706-6029
         </a>
 
+        <!-- Botão de Indicação (Abre o WhatsApp para compartilhar com uma amiga) -->
         <button onclick="shareReferral()" class="action-btn btn-referral">
             🎁 Indique uma amiga e ganhe +5 pts
         </button>
@@ -113,18 +114,16 @@
             document.getElementById('recentActivityText').innerText = `Você ganhou pontos em ${formatDate(updateDate)} 🎉`;
         }
 
-        // Número correto e completo da Mariana configurado no link
+        // Configuração do botão de Agendamento (WhatsApp da Mariana)
         const correctPhone = "5511967066029";
         const scheduleMsg = encodeURIComponent(`Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`);
         document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${scheduleMsg}`;
 
-        // Renderizar os 10 selos com blocos de histórico detalhado (+5, Atend., Data) igualzinho à foto
+        // Renderizar os 10 selos com o histórico detalhado
         const grid = document.getElementById('stampsGrid');
-        
         let historyEntries = [];
         let ptsLeft = points;
 
-        // Monta os blocos de atendimento com base nos pontos acumulados
         while (ptsLeft > 0) {
             let chunk = ptsLeft >= 5 ? 5 : (ptsLeft >= 3 ? 3 : ptsLeft);
             historyEntries.push({
@@ -151,11 +150,15 @@
             grid.appendChild(stamp);
         }
 
+        // Função de Indicação corrigida para abrir a tela de compartilhamento com a amiga
         function shareReferral() {
             const currentUrl = window.location.href.split('?')[0];
             const refLink = `${currentUrl}?ref=${clientId}`;
             const shareText = encodeURIComponent(`Olá! Conheça o Designer Estilo Mary e faça seu Cartão Fidelidade digital! Use meu link de indicação para começar: ${refLink}`);
-            window.open(`https://api.whatsapp.com/send?phone=${correctPhone}&text=${shareText}`, '_blank');
+            
+            // Usa o link universal do WhatsApp para permitir que a cliente escolha o contato da amiga
+            const waShareUrl = `https://api.whatsapp.com/send?text=${shareText}`;
+            window.open(waShareUrl, '_blank');
         }
     </script>
 </body>
