@@ -76,7 +76,8 @@
         .preview-name { font-size: 15px; font-weight: bold; color: #ffffff; }
         .preview-details { font-size: 12px; color: #a0a6b8; display: flex; gap: 12px; flex-wrap: wrap; }
         .preview-highlight { color: #FFD700; font-weight: bold; }
-        .preview-dates { font-size: 11px; color: #00d2d3; margin-top: 5px; font-weight: 600; border-top: 1px solid #232733; padding-top: 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px; }
+        .preview-dates { font-size: 11px; color: #00d2d3; margin-top: 6px; font-weight: 600; border-top: 1px solid #232733; padding-top: 5px; }
+        .preview-finance { margin-top: 6px; font-size: 12px; color: #FFD700; font-weight: bold; border-top: 1px solid #232733; padding-top: 5px; }
 
         /* Estilo do Gráfico centralizado */
         .chart-box { 
@@ -148,13 +149,13 @@
                     <div>Pontos: <span class="preview-highlight" id="previewPoints">0 pts</span></div>
                 </div>
             </div>
-            <!-- Datas exatas do cartão + Dias restantes -->
+            <!-- Informações exatas de Datas e Dias Restantes -->
             <div class="preview-dates" id="previewDatesText">
-                <span>📅 Atualizado em: --/--/---- | Válido até: --/--/----</span>
-                <span id="previewDaysLeftBadge" style="color: #FFD700; font-weight: bold;">⏳ -- dias restantes</span>
+                📅 Atualizado em: --/--/---- | Válido até: --/--/---- (⏳ -- dias restantes)
             </div>
-            <div style="margin-top: 6px; font-size: 11px; color: #FFD700; border-top: 1px solid #232733; padding-top: 5px;" id="previewFinance">
-                Financeiro: -
+            <!-- Informação Financeira restaurada e bem visível -->
+            <div class="preview-finance" id="previewFinance">
+                💰 Financeiro: -
             </div>
         </div>
 
@@ -274,10 +275,12 @@
             return `${day}/${month}/${year}`;
         }
 
-        // Calcula datas do cartão e quantos dias exatos faltam para vencer
+        // Correção de datas e dias restantes para evitar anos errados
         function getClientCardDates(client) {
             let updateDate = client.lastUpdate ? new Date(client.lastUpdate) : new Date();
-            if (isNaN(updateDate.getTime())) updateDate = new Date();
+            if (isNaN(updateDate.getTime()) || updateDate.getFullYear() > 2030 || updateDate.getFullYear() < 2024) {
+                updateDate = new Date(); // Garante que se a data estiver corrompida, assume hoje
+            }
             
             let validityDays = parseInt(client.days) || 60;
             let expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
@@ -367,7 +370,7 @@
                     <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
                     <td style="font-weight: bold; color: #FFD700;">${client.points}p</td>
                     <td>${daysBadge}</td>
-                    <td style="color: #FFD700; font-size: 11px;">${client.finance || '-'}</td>
+                    <td style="color: #FFD700; font-size: 11px; font-weight: bold;">${client.finance || '-'}</td>
                     <td><button class="btn-notes" onclick="selectClientByIndex(${index})">Gerenciar</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -411,20 +414,19 @@
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
 
-            // Atualiza os dados no painel de destaque na frente (Datas + Dias Restantes)
+            // Atualiza os dados no painel de destaque na frente (Datas + Dias Restantes + Financeiro)
             const dates = getClientCardDates(c);
             document.getElementById('previewId').innerText = c.id;
             document.getElementById('previewName').innerText = c.name;
             document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone';
             document.getElementById('previewPoints').innerText = `${c.points} pts`;
-            document.getElementById('previewDatesText').innerHTML = `<span>📅 Atualizado em ${dates.updatedFormatted} | Válido até ${dates.expiryFormatted}</span>`;
             
-            let daysBadgeText = `⏳ ${dates.daysLeft} dias restantes`;
-            if (dates.daysLeft < 0) daysBadgeText = `⚠️ Vencido há ${Math.abs(dates.daysLeft)} dias`;
-            else if (dates.daysLeft === 0) daysBadgeText = `⚠️ Vence hoje!`;
-            
-            document.getElementById('previewDaysLeftBadge').innerText = daysBadgeText;
-            document.getElementById('previewFinance').innerText = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
+            let daysBadgeText = `${dates.daysLeft} dias restantes`;
+            if (dates.daysLeft < 0) daysBadgeText = `Vencido há ${Math.abs(dates.daysLeft)} dias`;
+            else if (dates.daysLeft === 0) daysBadgeText = `Vence hoje!`;
+
+            document.getElementById('previewDatesText').innerHTML = `📅 Atualizado em: ${dates.updatedFormatted} | Válido até: ${dates.expiryFormatted} <br>(⏳ <b>${daysBadgeText}</b>)`;
+            document.getElementById('previewFinance').innerHTML = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
         }
 
         function loadClientFromSelect() {
@@ -621,7 +623,7 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes importadas com os dias restantes calculados!`);
+                        alert(`Sucesso! ${imported.length} clientes importadas com sucesso!`);
                     } else {
                         alert("A planilha parece estar vazia.");
                     }
