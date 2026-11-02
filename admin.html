@@ -4,57 +4,123 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Gestão - Designer Estilo Mary</title>
-    <!-- Bibliotecas para Gráficos e Leitura de Excel (.xlsx) -->
+    <!-- Bibliotecas para Gráficos e Leitura/Escrita de Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0A0A0A; color: #FFFFFF; padding: 20px; display: flex; justify-content: center; }
-        .dashboard-container { width: 100%; max-width: 950px; background: #14161d; border-radius: 16px; padding: 24px; border: 1px solid #232733; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .header-title { color: #FFD700; font-size: 22px; margin-bottom: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .counter-badge { background: #1a1d26; border: 1px solid #FFD700; color: #FFD700; font-size: 13px; padding: 6px 12px; border-radius: 20px; }
+        body { 
+            background-color: #0A0A0A; 
+            color: #FFFFFF; 
+            padding: 12px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .dashboard-container { 
+            width: 100%; 
+            max-width: 950px; 
+            background: #14161d; 
+            border-radius: 16px; 
+            padding: 18px; 
+            border: 1px solid #232733; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            margin: 0 auto;
+        }
+        .header-title { 
+            color: #FFD700; 
+            font-size: 20px; 
+            margin-bottom: 16px; 
+            font-weight: 700; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            text-align: center;
+        }
+        .counter-badge { 
+            background: #1a1d26; 
+            border: 1px solid #FFD700; 
+            color: #FFD700; 
+            font-size: 12px; 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            margin: 0 auto;
+        }
         
-        /* Caixa de Resumo em Destaque na Frente do Painel */
-        .quick-preview-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 2px solid #D4AF37; border-radius: 14px; padding: 18px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); }
-        .preview-title { color: #FFD700; font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
-        .preview-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .preview-name { font-size: 16px; font-weight: bold; color: #ffffff; }
-        .preview-details { font-size: 13px; color: #a0a6b8; display: flex; gap: 15px; flex-wrap: wrap; }
+        /* Caixa de Resumo em Destaque Centralizada na Frente */
+        .quick-preview-box { 
+            background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); 
+            border: 2px solid #D4AF37; 
+            border-radius: 14px; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); 
+            text-align: left;
+        }
+        .preview-title { 
+            color: #FFD700; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin-bottom: 6px; 
+            letter-spacing: 1px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .preview-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .preview-name { font-size: 15px; font-weight: bold; color: #ffffff; }
+        .preview-details { font-size: 12px; color: #a0a6b8; display: flex; gap: 12px; flex-wrap: wrap; }
         .preview-highlight { color: #FFD700; font-weight: bold; }
 
-        /* Estilo do Gráfico reposicionado */
-        .chart-box { background: #1a1d26; border: 1px solid #2a2e3d; border-radius: 12px; padding: 16px; margin-top: 24px; margin-bottom: 24px; height: 280px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chart-toggle-btn { background: #101217; border: 1px solid #2a2e3d; color: #a0a6b8; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+        /* Estilo do Gráfico centralizado */
+        .chart-box { 
+            background: #1a1d26; 
+            border: 1px solid #2a2e3d; 
+            border-radius: 12px; 
+            padding: 14px; 
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+            height: 260px; 
+            position: relative; 
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .chart-toggle-btn { background: #101217; border: 1px solid #2a2e3d; color: #a0a6b8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
         .chart-toggle-btn.active { background: #D4AF37; color: #0A0A0A; font-weight: bold; border-color: #D4AF37; }
         
-        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         @media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
-        .section-title { color: #FFD700; font-size: 15px; font-weight: bold; margin-bottom: 12px; }
-        label { display: block; font-size: 12px; color: #a0a6b8; margin-bottom: 4px; margin-top: 8px; }
-        input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 8px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 13px; outline: none; }
+        
+        .section-title { color: #FFD700; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
+        label { display: block; font-size: 11px; color: #a0a6b8; margin-bottom: 3px; margin-top: 6px; }
+        input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 8px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 13px; outline: none; }
         input:focus, select:focus, textarea:focus { border-color: #FFD700; }
-        .btn-group { display: flex; gap: 8px; margin-top: 8px; }
-        .btn { border: none; border-radius: 8px; padding: 10px; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
+        
+        .btn-group { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .btn { border: none; border-radius: 8px; padding: 10px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.9; }
-        .btn-gold { background: linear-gradient(135deg, #FFE58F, #D4AF37); color: #0A0A0A; flex: 1; }
-        .btn-cyan { background: #00d2d3; color: #101217; flex: 1; }
-        .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; }
+        .btn-gold { background: linear-gradient(135deg, #FFE58F, #D4AF37); color: #0A0A0A; flex: 1; min-width: 100px; }
+        .btn-cyan { background: #00d2d3; color: #101217; flex: 1; min-width: 70px; }
+        .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; min-width: 70px; }
         .btn-green { background: #00C853; color: #ffffff; width: 100%; }
-        .btn-excel { background: #107c41; color: #ffffff; padding: 6px 12px; font-size: 12px; }
-        .btn-import { background: #8e44ad; color: #ffffff; padding: 6px 12px; font-size: 12px; }
+        .btn-excel { background: #107c41; color: #ffffff; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-import { background: #8e44ad; color: #ffffff; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
         .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
-        .btn-blue { background: #00A8E8; color: #ffffff; width: 100%; margin-top: 10px; }
-        .table-section { margin-top: 24px; border-top: 1px solid #232733; padding-top: 20px; overflow-x: auto; }
+        .btn-blue { background: #00A8E8; color: #ffffff; width: 100%; margin-top: 10px; padding: 12px; font-size: 13px; }
+        
+        .table-section { margin-top: 20px; border-top: 1px solid #232733; padding-top: 16px; overflow-x: auto; width: 100%; }
         .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 850px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #232733; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; }
+        th, td { padding: 9px; text-align: left; border-bottom: 1px solid #232733; }
         th { color: #a0a6b8; font-weight: 600; }
-        .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; }
         .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
-        .badge-days { background: #D4AF3722; color: #FFD700; padding: 3px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #D4AF3744; }
-        .badge-expired { background: #ee525322; color: #ff6b6b; padding: 3px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; }
+        .badge-days { background: #D4AF3722; color: #FFD700; padding: 2px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #D4AF3744; }
+        .badge-expired { background: #ee525322; color: #ff6b6b; padding: 2px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; }
     </style>
 </head>
 <body>
@@ -73,14 +139,14 @@
             <div class="preview-content">
                 <div>
                     <div class="preview-name" id="previewName">Carregando...</div>
-                    <div style="font-size: 12px; color: #00d2d3; margin-top: 2px;" id="previewPhone">-</div>
+                    <div style="font-size: 11px; color: #00d2d3; margin-top: 2px;" id="previewPhone">-</div>
                 </div>
                 <div class="preview-details">
                     <div>Pontos: <span class="preview-highlight" id="previewPoints">0 pts</span></div>
                     <div>Validade: <span class="preview-highlight" id="previewDays">60 dias</span></div>
                 </div>
             </div>
-            <div style="margin-top: 8px; font-size: 12px; color: #FFD700; border-top: 1px solid #232733; padding-top: 6px;" id="previewFinance">
+            <div style="margin-top: 6px; font-size: 11px; color: #FFD700; border-top: 1px solid #232733; padding-top: 5px;" id="previewFinance">
                 Financeiro: -
             </div>
         </div>
@@ -88,26 +154,35 @@
         <div class="grid-layout">
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
-                <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 12px; font-size: 14px; padding: 12px;">➕ Cadastrar Nova Cliente Aqui</button>
+                <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
+                
                 <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
                 <select id="selectClient" onchange="loadClientFromSelect()"><option value="">-- Selecione uma cliente --</option></select>
+                
                 <label for="clientId">ID do Cliente:</label>
                 <input type="text" id="clientId" value="EB-1001" readonly>
+                
                 <label for="clientName">Nome Completo da Cliente:</label>
                 <input type="text" id="clientName" placeholder="Nome da cliente">
+                
                 <label for="clientPhone">WhatsApp com DDD:</label>
                 <input type="text" id="clientPhone" placeholder="11987654321">
+                
                 <label for="referredBy">Indicada por (Cliente / ID ou Direto):</label>
                 <input type="text" id="referredBy" placeholder="Ex: [EB-1001] Mariana ou Direto">
+                
                 <label for="clientFinanceNotes" style="color: #FFD700; font-weight: bold;">💰 Anotações Financeiras (Ex: Pagou Adiantado / Devendo):</label>
                 <textarea id="clientFinanceNotes" rows="2" placeholder="Ex: Pagou adiantado via Pix / Deve R$ 50,00..."></textarea>
+                
                 <label for="clientNotes">📝 Observações Gerais / Atendimento:</label>
                 <textarea id="clientNotes" rows="2" placeholder="Ex: Prefere sobrancelha mais marcada..."></textarea>
-                <div class="btn-group" style="margin-top: 15px;">
+                
+                <div class="btn-group" style="margin-top: 12px;">
                     <button class="btn btn-green" onclick="saveClient()">💾 Salvar / Atualizar</button>
-                    <button class="btn btn-red" onclick="deleteClient()">🗑️ Eliminar Cliente</button>
+                    <button class="btn btn-red" onclick="deleteClient()">🗑️ Eliminar</button>
                 </div>
             </div>
+            
             <div>
                 <div class="section-title">Lançar Pontos & Validade do Cartão</div>
                 <label>Adicionar Pontos:</label>
@@ -116,34 +191,38 @@
                     <button class="btn btn-gold" onclick="addPoints(3)">+ 3 Pontos</button>
                     <button class="btn btn-gold" onclick="addPoints(5)">+ 5 Pontos</button>
                 </div>
-                <label style="margin-top: 15px;">Ajustar Dias de Validade do Cartão:</label>
+                
+                <label style="margin-top: 12px;">Ajustar Dias de Validade do Cartão:</label>
                 <div class="btn-group">
                     <button class="btn btn-cyan" onclick="adjustDays(1)">+ 1 Dia</button>
                     <button class="btn btn-cyan" onclick="adjustDays(10)">+ 10 Dias</button>
                     <button class="btn btn-coral" onclick="adjustDays(-1)">- 1 Dia</button>
                     <button class="btn btn-coral" onclick="adjustDays(-10)">- 10 Dias</button>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
-                    <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 15px;">
-                    <button class="btn btn-gold" style="width: auto;" onclick="saveValidityDays()">Fixar Dias</button>
+                
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+                    <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 14px;">
+                    <button class="btn btn-gold" style="width: auto; padding: 10px;" onclick="saveValidityDays()">Fixar</button>
                 </div>
-                <label style="margin-top: 15px; color: #ff6b6b;">Correção de Pontos:</label>
+                
+                <label style="margin-top: 12px; color: #ff6b6b;">Correção de Pontos:</label>
                 <div class="btn-group">
                     <button class="btn btn-coral" onclick="addPoints(-1)">- 1 Ponto</button>
-                    <button class="btn btn-coral" onclick="resetPoints()">🔄 Zerar Cartão</button>
+                    <button class="btn btn-coral" onclick="resetPoints()">🔄 Zerar</button>
                 </div>
+                
                 <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
                 
                 <!-- GRÁFICO POSICIONADO ABAIXO DO BOTÃO AZUL -->
                 <div class="chart-box">
                     <div class="chart-header">
-                        <span style="font-size: 13px; font-weight: bold; color: #FFD700;">📊 Atendimentos por Período (Outubro)</span>
+                        <span style="font-size: 12px; font-weight: bold; color: #FFD700;">📊 Atendimentos por Período</span>
                         <div>
                             <button id="btnMonthly" class="chart-toggle-btn active" onclick="switchChart('monthly')">Mensal</button>
                             <button id="btnYearly" class="chart-toggle-btn" onclick="switchChart('yearly')">Anual</button>
                         </div>
                     </div>
-                    <div style="height: 200px;"><canvas id="attendanceChart"></canvas></div>
+                    <div style="height: 190px;"><canvas id="attendanceChart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -153,18 +232,19 @@
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="importFromExcel(event)">
-                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar Arquivo Excel (.XLSX)</button>
-                    <button class="btn btn-excel" onclick="exportToExcel()">📊 Baixar Excel (.CSV)</button>
+                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar XLSX</button>
+                    <button class="btn btn-excel" onclick="exportToExcelXLSX()">📊 Baixar Excel (.XLSX)</button>
                 </div>
             </div>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Total Pontos</th><th>Dias Restantes</th><th>Financeiro</th><th>Ação</th></tr>
+                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Pontos</th><th>Validade</th><th>Financeiro</th><th>Ação</th></tr>
                 </thead>
                 <tbody id="clientTableBody"></tbody>
             </table>
         </div>
     </div>
+
     <script>
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
@@ -176,7 +256,6 @@
             updateChartData();
         }
 
-        // Cálculo seguro de dias restantes
         function calculateDaysLeft(client) {
             let totalDaysAllowed = parseInt(client.days) || 60;
             if (!client.lastUpdate) return totalDaysAllowed;
@@ -190,12 +269,11 @@
             return diffDays;
         }
 
-        // Configuração do Gráfico Real
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         const attendanceChart = new Chart(ctx, {
             type: 'bar',
             data: { labels: [], datasets: [{ label: 'Atendimentos', data: [], backgroundColor: 'rgba(212, 175, 55, 0.8)', borderColor: '#D4AF37', borderWidth: 1, borderRadius: 6 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8', font: {size: 10} }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8', beginAtZero: true, stepSize: 5 }, grid: { color: '#232733' } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8', font: {size: 9} }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8', beginAtZero: true, stepSize: 5, font: {size: 9} }, grid: { color: '#232733' } } } }
         });
 
         let currentChartMode = 'monthly';
@@ -246,11 +324,11 @@
             
             clientsList.forEach((client, index) => {
                 const daysLeft = calculateDaysLeft(client);
-                let daysBadge = `<span class="badge-days">⏳ ${daysLeft} dias</span>`;
+                let daysBadge = `<span class="badge-days">${daysLeft}d</span>`;
                 if (daysLeft < 0) {
-                    daysBadge = `<span class="badge-expired">⚠️ Expirado</span>`;
+                    daysBadge = `<span class="badge-expired">Exp</span>`;
                 } else if (daysLeft === 0) {
-                    daysBadge = `<span class="badge-expired">⚠️ Vence hoje</span>`;
+                    daysBadge = `<span class="badge-expired">Hoje</span>`;
                 }
 
                 const tr = document.createElement('tr');
@@ -259,16 +337,16 @@
                     <td>${client.name}</td>
                     <td>${client.phone || '-'}</td>
                     <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
-                    <td style="font-weight: bold; color: #FFD700;">⭐ ${client.points} pts</td>
+                    <td style="font-weight: bold; color: #FFD700;">${client.points}p</td>
                     <td>${daysBadge}</td>
-                    <td style="color: #FFD700; font-size: 12px;">${client.finance || '-'}</td>
-                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>
+                    <td style="color: #FFD700; font-size: 11px;">${client.finance || '-'}</td>
+                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">Gerenciar</button></td>
                 `;
                 tbody.appendChild(tr);
 
                 const opt = document.createElement('option');
                 opt.value = index;
-                opt.text = `[${client.id}] ${client.name} (${client.points} pts - ${daysLeft > 0 ? daysLeft + ' dias restantes' : 'Vencido'})`;
+                opt.text = `[${client.id}] ${client.name} (${client.points} pts)`;
                 select.appendChild(opt);
             });
             document.getElementById('totalClientsCount').innerText = clientsList.length;
@@ -291,7 +369,7 @@
             const daysLeft = calculateDaysLeft(c);
             document.getElementById('previewId').innerText = c.id;
             document.getElementById('previewName').innerText = c.name;
-            document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone cadastrado';
+            document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone';
             document.getElementById('previewPoints').innerText = `${c.points} pts`;
             document.getElementById('previewDays').innerText = daysLeft >= 0 ? `${daysLeft} dias restantes` : 'Expirado';
             document.getElementById('previewFinance').innerText = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
@@ -306,7 +384,7 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
-                clientsList[currentIndex].lastUpdate = new Date().toISOString(); // Se atualizar agora em novembro, vai para novembro
+                clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -336,7 +414,7 @@
                 clientsList[currentIndex].days = val;
                 clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
-                alert("Validade de " + val + " dias fixada para esta cliente!");
+                alert("Validade de " + val + " dias fixada!");
             }
         }
 
@@ -350,7 +428,7 @@
                 clientsList[currentIndex].days = parseInt(document.getElementById('validityDays').value) || 60;
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
-                alert("Dados da cliente salvos com sucesso no celular!");
+                alert("Dados salvos com sucesso!");
             }
         }
 
@@ -375,7 +453,7 @@
                 clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, lastUpdate: new Date().toISOString(), finance: "", notes: "" });
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
-                alert("Nova cliente cadastrada e salva com sucesso!");
+                alert("Nova cliente cadastrada!");
             }
         }
 
@@ -384,7 +462,7 @@
                 const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 const c = clientsList[currentIndex];
                 const phoneInput = document.getElementById('clientPhone').value || c.phone;
-                if (!phoneInput) { alert("Esta cliente não possui número de WhatsApp cadastrado!"); return; }
+                if (!phoneInput) { alert("Esta cliente não possui WhatsApp cadastrado!"); return; }
                 let phoneClean = phoneInput.replace(/\D/g, '');
                 if (!phoneClean.startsWith('55')) { phoneClean = '55' + phoneClean; }
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
@@ -396,14 +474,24 @@
             }
         }
 
-        function exportToExcel() {
-            let csv = '\uFEFFID,Nome,WhatsApp,Indicada Por,Pontos,Validade (Dias),Financeiro,Anotacoes\n';
-            clientsList.forEach(c => { csv += `${c.id},"${c.name}","${c.phone}","${c.ref}",${c.points},${c.days || 60},"${c.finance || ''}","${c.notes || ''}"\n`; });
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
+        // Função moderna para exportar diretamente em arquivo nativo .XLSX usando SheetJS
+        function exportToExcelXLSX() {
+            let dataExport = clientsList.map(c => ({
+                "ID": c.id,
+                "Nome": c.name,
+                "WhatsApp": c.phone,
+                "Indicada Por": c.ref,
+                "Pontos": c.points,
+                "Validade (Dias)": c.days || 60,
+                "Financeiro": c.finance || '',
+                "Anotações": c.notes || ''
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+            
+            XLSX.writeFile(workbook, `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
 
         function importFromExcel(event) {
@@ -457,7 +545,7 @@
                         });
 
                         if (!name && cols[1]) name = String(cols[1]);
-                        if (!phone && cols[2]) phone = String(cols[2]).replace(/\D/g, '');
+                        if (!phone && cols[2]) phone = String(cols[2]).replace(/\D/g, '').trim();
                         if (points === 0 && !isNaN(cols[4])) points = parseInt(cols[4]) || 0;
 
                         imported.push({ 
@@ -467,7 +555,7 @@
                             ref: ref || 'Direto', 
                             points: points, 
                             days: days, 
-                            lastUpdate: "2026-10-15T00:00:00.000Z", // Atribui Outubro como data padrão para manter no mês correto
+                            lastUpdate: "2026-10-15T00:00:00.000Z", 
                             finance: finance || '', 
                             notes: notes || '' 
                         });
@@ -477,12 +565,12 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes importadas e direcionadas para Outubro no gráfico!`);
+                        alert(`Sucesso! ${imported.length} clientes importadas com sucesso!`);
                     } else {
-                        alert("A planilha parece estar vazia ou fora do formato esperado.");
+                        alert("A planilha parece estar vazia.");
                     }
                 } catch (error) {
-                    alert("Erro ao ler o arquivo XLSX. Certifique-se de que é uma planilha válida.");
+                    alert("Erro ao ler o arquivo XLSX.");
                     console.error(error);
                 }
             };
