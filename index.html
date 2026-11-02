@@ -15,16 +15,21 @@
         .welcome-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 1px solid #D4AF37; border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
         .welcome-box h2 { font-size: 16px; color: #FFD700; margin-bottom: 6px; }
         .welcome-box p { font-size: 12px; color: #ffffff; line-height: 1.4; }
-        .points-display { font-size: 22px; font-weight: 800; color: #FFD700; margin: 10px 0 6px 0; background: rgba(212,175,55,0.1); padding: 8px; border-radius: 10px; border: 1px solid rgba(212,175,55,0.3); }
-        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 4px; font-weight: 600; }
+        
+        .points-display { font-size: 22px; font-weight: 800; color: #0A0A0A; margin: 10px 0 6px 0; background: linear-gradient(135deg, #FFE58F, #D4AF37); padding: 10px; border-radius: 12px; border: 1px solid #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; }
 
         .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
-        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px dashed #2a2e3d; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 15px; color: #a0a6b8; position: relative; transition: all 0.3s ease; }
-        .stamp.filled { background: linear-gradient(135deg, #FFE58F, #D4AF37); border: 2px solid #FFD700; color: #0A0A0A; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px solid #2a2e3d; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #a0a6b8; position: relative; transition: all 0.3s ease; padding: 4px; text-align: center; }
+        .stamp.filled { background: #14161d; border: 2px solid #C71585; color: #ffffff; box-shadow: 0 0 8px rgba(199, 21, 133, 0.4); }
+        .stamp-value { font-size: 13px; font-weight: 800; color: #FF69B4; }
+        .stamp-label { font-size: 8px; color: #ffffff; margin-top: 1px; line-height: 1; }
+        .stamp-date { font-size: 8px; color: #00d2d3; margin-top: 2px; font-weight: 600; }
+        .stamp.empty { font-size: 14px; color: #a0a6b8; }
 
-        .total-box { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
-        .total-box span { font-size: 12px; font-weight: bold; color: #a0a6b8; text-transform: uppercase; }
-        .total-box strong { font-size: 16px; color: #FFD700; }
+        .total-box { background: linear-gradient(135deg, #FFE58F, #D4AF37); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: #0A0A0A; font-weight: 800; }
+        .total-box span { font-size: 13px; text-transform: uppercase; }
+        .total-box strong { font-size: 18px; }
 
         .info-card { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 11px; color: #a0a6b8; line-height: 1.5; }
         .info-card strong { color: #ffffff; display: block; margin-bottom: 2px; }
@@ -43,8 +48,8 @@
 
         <div class="welcome-box">
             <h2 id="clientGreeting">Olá, Cliente! 👋</h2>
-            <p>Você acumulou pontos em atendimento recente 💅</p>
-            <div class="points-display" id="pointsDisplay">0 pontos ❤️</div>
+            <p id="recentActivityText">Você acumulou pontos em atendimento recente 💅</p>
+            <div class="points-display" id="pointsDisplay">0 pontos 💖</div>
             <div class="dates-info" id="datesDisplay">Atualizado em: --/--/---- - Válido até: --/--/----</div>
         </div>
 
@@ -63,9 +68,9 @@
             Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
         </div>
 
-        <!-- Botão de WhatsApp atualizado com o número correto e completo -->
+        <!-- Botão WhatsApp com o número correto e completo da Mariana -->
         <a id="whatsappBtn" href="#" target="_blank" class="action-btn btn-whatsapp">
-            📅 Agendar: WhatsApp (11) 96706-6029
+            📅 Agende: WhatsApp (11) 96706-6029
         </a>
 
         <button onclick="shareReferral()" class="action-btn btn-referral">
@@ -79,6 +84,12 @@
         function formatDate(dateObj) {
             const day = String(dateObj.getDate()).padStart(2, '0');
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return `${day}/${month}`;
+        }
+
+        function formatFullDate(dateObj) {
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const year = dateObj.getFullYear();
             return `${day}/${month}/${year}`;
         }
@@ -90,29 +101,52 @@
         const validityDays = parseInt(urlParams.get('dias')) || 60;
 
         document.getElementById('clientGreeting').innerText = `Olá, ${clientName}! 👋`;
-        document.getElementById('pointsDisplay').innerText = `${points} ponto${points !== 1 ? 's' : ''} ❤️`;
+        document.getElementById('pointsDisplay').innerText = `${points} pontos 💖`;
         document.getElementById('totalPointsText').innerText = `${points} PTS`;
         document.getElementById('validityDaysText').innerText = validityDays;
 
         const updateDate = new Date();
         const expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
-        document.getElementById('datesDisplay').innerText = `Atualizado em ${formatDate(updateDate)} - Válido até ${formatDate(expiryDate)}`;
+        document.getElementById('datesDisplay').innerText = `Atualizado em ${formatFullDate(updateDate)} - Válido até ${formatFullDate(expiryDate)}`;
 
-        // Número configurado corretamente para o WhatsApp
+        if (points > 0) {
+            document.getElementById('recentActivityText').innerText = `Você ganhou pontos em ${formatDate(updateDate)} 🎉`;
+        }
+
+        // Número correto e completo da Mariana configurado no link
         const correctPhone = "5511967066029";
         const scheduleMsg = encodeURIComponent(`Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`);
         document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${scheduleMsg}`;
 
-        // Renderizar os 10 selos mantendo o visual original (Estrela no 1 e números de 2 a 10)
+        // Renderizar os 10 selos com blocos de histórico detalhado (+5, Atend., Data) igualzinho à foto
         const grid = document.getElementById('stampsGrid');
+        
+        let historyEntries = [];
+        let ptsLeft = points;
+
+        // Monta os blocos de atendimento com base nos pontos acumulados
+        while (ptsLeft > 0) {
+            let chunk = ptsLeft >= 5 ? 5 : (ptsLeft >= 3 ? 3 : ptsLeft);
+            historyEntries.push({
+                val: `+${chunk}`,
+                date: formatDate(updateDate)
+            });
+            ptsLeft -= chunk;
+        }
+
         for (let i = 1; i <= 10; i++) {
             const stamp = document.createElement('div');
-            stamp.className = `stamp ${i <= points ? 'filled' : ''}`;
             
-            if (i === 1) {
-                stamp.innerHTML = i <= points ? '✓' : '★';
+            if (i <= historyEntries.length) {
+                stamp.className = 'stamp filled';
+                stamp.innerHTML = `
+                    <div class="stamp-value">${historyEntries[i-1].val}</div>
+                    <div class="stamp-label">❤️ Atend.</div>
+                    <div class="stamp-date">${historyEntries[i-1].date}</div>
+                `;
             } else {
-                stamp.innerHTML = i <= points ? '✓' : i;
+                stamp.className = 'stamp empty';
+                stamp.innerHTML = i;
             }
             grid.appendChild(stamp);
         }
