@@ -100,6 +100,8 @@
         input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 8px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 13px; outline: none; }
         input:focus, select:focus, textarea:focus { border-color: #FFD700; }
         
+        .search-input-box { border: 2px solid #00A8E8; background: #101217; font-weight: bold; color: #00A8E8; }
+        
         .btn-group { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
         .btn { border: none; border-radius: 8px; padding: 10px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
         .btn:hover { opacity: 0.9; }
@@ -156,7 +158,11 @@
                 <div class="section-title">Gerenciar Cliente</div>
                 <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
                 
-                <label for="selectClient">Pesquisar ou Selecionar Cliente Registrado:</label>
+                <!-- CAMPO DE BUSCA RÁPIDA POR NOME -->
+                <label for="searchClientInput" style="color: #00A8E8; font-weight: bold;">🔍 Digite o Nome para Achar Rápido:</label>
+                <input type="text" id="searchClientInput" class="search-input-box" placeholder="Ex: Mariana, Cláudia..." oninput="filterClientByName()">
+
+                <label for="selectClient" style="margin-top: 8px;">Ou Selecionar na Lista:</label>
                 <select id="selectClient" onchange="loadClientFromSelect()"><option value="">-- Selecione uma cliente --</option></select>
                 
                 <label for="clientId">ID do Cliente:</label>
@@ -316,13 +322,18 @@
             attendanceChart.update();
         }
 
-        function renderTableAndSelect() {
+        function renderTableAndSelect(filteredList = null) {
             const tbody = document.getElementById('clientTableBody');
             const select = document.getElementById('selectClient');
             tbody.innerHTML = '';
             select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
             
-            clientsList.forEach((client, index) => {
+            const listToUse = filteredList || clientsList;
+            
+            listToUse.forEach((client) => {
+                // Encontra o índice real na lista principal
+                const index = clientsList.findIndex(c => c.id === client.id);
+
                 const daysLeft = calculateDaysLeft(client);
                 let daysBadge = `<span class="badge-days">${daysLeft}d</span>`;
                 if (daysLeft < 0) {
@@ -351,6 +362,25 @@
             });
             document.getElementById('totalClientsCount').innerText = clientsList.length;
             persistData();
+        }
+
+        // Função de Busca Rápida por Nome ou Telefone digitado
+        function filterClientByName() {
+            const query = document.getElementById('searchClientInput').value.toLowerCase().trim();
+            if (!query) {
+                renderTableAndSelect();
+                return;
+            }
+            const filtered = clientsList.filter(c => 
+                c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))
+            );
+            renderTableAndSelect(filtered);
+            
+            // Se achar exatamente ou a primeira correspondência, já seleciona automaticamente
+            if (filtered.length > 0) {
+                const realIndex = clientsList.findIndex(c => c.id === filtered[0].id);
+                selectClientByIndex(realIndex);
+            }
         }
 
         let currentIndex = 0;
@@ -474,7 +504,6 @@
             }
         }
 
-        // Função moderna para exportar diretamente em arquivo nativo .XLSX usando SheetJS
         function exportToExcelXLSX() {
             let dataExport = clientsList.map(c => ({
                 "ID": c.id,
