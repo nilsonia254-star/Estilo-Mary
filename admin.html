@@ -134,10 +134,10 @@
                 </div>
                 <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
                 
-                <!-- GRÁFICO POSICIONADO EXATAMENTE ABAIXO DO BOTÃO AZUL -->
+                <!-- GRÁFICO POSICIONADO ABAIXO DO BOTÃO AZUL -->
                 <div class="chart-box">
                     <div class="chart-header">
-                        <span style="font-size: 13px; font-weight: bold; color: #FFD700;">📊 Atendimentos por Período (Real)</span>
+                        <span style="font-size: 13px; font-weight: bold; color: #FFD700;">📊 Atendimentos por Período (Outubro)</span>
                         <div>
                             <button id="btnMonthly" class="chart-toggle-btn active" onclick="switchChart('monthly')">Mensal</button>
                             <button id="btnYearly" class="chart-toggle-btn" onclick="switchChart('yearly')">Anual</button>
@@ -168,7 +168,7 @@
     <script>
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
-            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: new Date().toISOString(), finance: "Pago adiantado", notes: "Cliente VIP" }
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-10-15T00:00:00.000Z", finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
         function persistData() {
@@ -176,7 +176,7 @@
             updateChartData();
         }
 
-        // Cálculo seguro de dias restantes (corrigindo o bug anterior de números gigantes)
+        // Cálculo seguro de dias restantes
         function calculateDaysLeft(client) {
             let totalDaysAllowed = parseInt(client.days) || 60;
             if (!client.lastUpdate) return totalDaysAllowed;
@@ -190,12 +190,12 @@
             return diffDays;
         }
 
-        // Configuração do Gráfico Real baseado nos dados inseridos
+        // Configuração do Gráfico Real
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         const attendanceChart = new Chart(ctx, {
             type: 'bar',
             data: { labels: [], datasets: [{ label: 'Atendimentos', data: [], backgroundColor: 'rgba(212, 175, 55, 0.8)', borderColor: '#D4AF37', borderWidth: 1, borderRadius: 6 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8', font: {size: 10} }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8', beginAtZero: true, stepSize: 1 }, grid: { color: '#232733' } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8', font: {size: 10} }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8', beginAtZero: true, stepSize: 5 }, grid: { color: '#232733' } } } }
         });
 
         let currentChartMode = 'monthly';
@@ -216,7 +216,7 @@
             if(currentChartMode === 'monthly') {
                 let counts = new Array(12).fill(0);
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
+                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date("2026-10-15T00:00:00.000Z");
                     if (!isNaN(d.getTime())) {
                         counts[d.getMonth()]++;
                     }
@@ -226,12 +226,12 @@
             } else {
                 let yearsCount = {};
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
-                    let y = !isNaN(d.getTime()) ? d.getFullYear() : new Date().getFullYear();
+                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date("2026-10-15T00:00:00.000Z");
+                    let y = !isNaN(d.getTime()) ? d.getFullYear() : 2026;
                     yearsCount[y] = (yearsCount[y] || 0) + 1;
                 });
                 let years = Object.keys(yearsCount).sort();
-                if(years.length === 0) years = [new Date().getFullYear()];
+                if(years.length === 0) years = [2026];
                 attendanceChart.data.labels = years;
                 attendanceChart.data.datasets[0].data = years.map(y => yearsCount[y]);
             }
@@ -288,7 +288,6 @@
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
 
-            // Atualiza o painel de resumo na frente da tela
             const daysLeft = calculateDaysLeft(c);
             document.getElementById('previewId').innerText = c.id;
             document.getElementById('previewName').innerText = c.name;
@@ -307,7 +306,7 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
-                clientsList[currentIndex].lastUpdate = new Date().toISOString();
+                clientsList[currentIndex].lastUpdate = new Date().toISOString(); // Se atualizar agora em novembro, vai para novembro
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -450,7 +449,7 @@
                                 ref = strVal;
                             } else if (!name && isNaN(strVal) && strVal.length > 2 && !strVal.toLowerCase().includes('pagou') && !strVal.toLowerCase().includes('dev')) {
                                 name = strVal;
-                            } else if (!finance && (strVal.toLowerCase().includes('pagou' ) || strVal.toLowerCase().includes('dev') || strVal.toLowerCase().includes('pix') || strVal.toLowerCase().includes('adiantado'))) {
+                            } else if (!finance && (strVal.toLowerCase().includes('pagou') || strVal.toLowerCase().includes('dev') || strVal.toLowerCase().includes('pix') || strVal.toLowerCase().includes('adiantado'))) {
                                 finance = strVal;
                             } else if (!notes && strVal.length > 0) {
                                 notes = strVal;
@@ -468,7 +467,7 @@
                             ref: ref || 'Direto', 
                             points: points, 
                             days: days, 
-                            lastUpdate: new Date().toISOString(),
+                            lastUpdate: "2026-10-15T00:00:00.000Z", // Atribui Outubro como data padrão para manter no mês correto
                             finance: finance || '', 
                             notes: notes || '' 
                         });
@@ -478,7 +477,7 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes importadas com dados e gráfico atualizados!`);
+                        alert(`Sucesso! ${imported.length} clientes importadas e direcionadas para Outubro no gráfico!`);
                     } else {
                         alert("A planilha parece estar vazia ou fora do formato esperado.");
                     }
