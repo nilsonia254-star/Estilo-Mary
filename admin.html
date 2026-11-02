@@ -76,6 +76,7 @@
         .preview-name { font-size: 15px; font-weight: bold; color: #ffffff; }
         .preview-details { font-size: 12px; color: #a0a6b8; display: flex; gap: 12px; flex-wrap: wrap; }
         .preview-highlight { color: #FFD700; font-weight: bold; }
+        .preview-dates { font-size: 11px; color: #00d2d3; margin-top: 5px; font-weight: 600; border-top: 1px solid #232733; padding-top: 4px; }
 
         /* Estilo do Gráfico centralizado */
         .chart-box { 
@@ -121,8 +122,7 @@
         th { color: #a0a6b8; font-weight: 600; }
         .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; }
         .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
-        .badge-days { background: #D4AF3722; color: #FFD700; padding: 2px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #D4AF3744; }
-        .badge-expired { background: #ee525322; color: #ff6b6b; padding: 2px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; }
+        .badge-dates { background: #00d2d322; color: #00d2d3; padding: 2px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #00d2d344; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -145,8 +145,11 @@
                 </div>
                 <div class="preview-details">
                     <div>Pontos: <span class="preview-highlight" id="previewPoints">0 pts</span></div>
-                    <div>Validade: <span class="preview-highlight" id="previewDays">60 dias</span></div>
                 </div>
+            </div>
+            <!-- Informações exatas de Atualização e Validade idênticas ao Cartão -->
+            <div class="preview-dates" id="previewDatesText">
+                📅 Atualizado em: --/--/---- - Válido até: --/--/----
             </div>
             <div style="margin-top: 6px; font-size: 11px; color: #FFD700; border-top: 1px solid #232733; padding-top: 5px;" id="previewFinance">
                 Financeiro: -
@@ -244,7 +247,7 @@
             </div>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Pontos</th><th>Validade</th><th>Financeiro</th><th>Ação</th></tr>
+                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Pontos</th><th>Validade Exata</th><th>Financeiro</th><th>Ação</th></tr>
                 </thead>
                 <tbody id="clientTableBody"></tbody>
             </table>
@@ -254,7 +257,7 @@
     <script>
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
-            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-10-15T00:00:00.000Z", finance: "Pago adiantado", notes: "Cliente VIP" }
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: new Date().toISOString(), finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
         function persistData() {
@@ -262,17 +265,26 @@
             updateChartData();
         }
 
-        function calculateDaysLeft(client) {
-            let totalDaysAllowed = parseInt(client.days) || 60;
-            if (!client.lastUpdate) return totalDaysAllowed;
-            const updateDate = new Date(client.lastUpdate);
-            if (isNaN(updateDate.getTime())) return totalDaysAllowed;
+        // Função para formatar data em DD/MM/AAAA
+        function formatDate(dateObj) {
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Calcula a data de atualização e a data de vencimento exata igual ao cartão
+        function getClientCardDates(client) {
+            let updateDate = client.lastUpdate ? new Date(client.lastUpdate) : new Date();
+            if (isNaN(updateDate.getTime())) updateDate = new Date();
             
-            const expiryDate = new Date(updateDate.getTime() + (totalDaysAllowed * 24 * 60 * 60 * 1000));
-            const today = new Date();
-            const diffTime = expiryDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
+            let validityDays = parseInt(client.days) || 60;
+            let expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
+            
+            return {
+                updatedFormatted: formatDate(updateDate),
+                expiryFormatted: formatDate(expiryDate)
+            };
         }
 
         const ctx = document.getElementById('attendanceChart').getContext('2d');
@@ -300,7 +312,7 @@
             if(currentChartMode === 'monthly') {
                 let counts = new Array(12).fill(0);
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date("2026-10-15T00:00:00.000Z");
+                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
                     if (!isNaN(d.getTime())) {
                         counts[d.getMonth()]++;
                     }
@@ -310,7 +322,7 @@
             } else {
                 let yearsCount = {};
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date("2026-10-15T00:00:00.000Z");
+                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
                     let y = !isNaN(d.getTime()) ? d.getFullYear() : 2026;
                     yearsCount[y] = (yearsCount[y] || 0) + 1;
                 });
@@ -331,16 +343,8 @@
             const listToUse = filteredList || clientsList;
             
             listToUse.forEach((client) => {
-                // Encontra o índice real na lista principal
                 const index = clientsList.findIndex(c => c.id === client.id);
-
-                const daysLeft = calculateDaysLeft(client);
-                let daysBadge = `<span class="badge-days">${daysLeft}d</span>`;
-                if (daysLeft < 0) {
-                    daysBadge = `<span class="badge-expired">Exp</span>`;
-                } else if (daysLeft === 0) {
-                    daysBadge = `<span class="badge-expired">Hoje</span>`;
-                }
+                const dates = getClientCardDates(client);
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -349,7 +353,7 @@
                     <td>${client.phone || '-'}</td>
                     <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
                     <td style="font-weight: bold; color: #FFD700;">${client.points}p</td>
-                    <td>${daysBadge}</td>
+                    <td><span class="badge-dates">Atu: ${dates.updatedFormatted}<br>Venc: ${dates.expiryFormatted}</span></td>
                     <td style="color: #FFD700; font-size: 11px;">${client.finance || '-'}</td>
                     <td><button class="btn-notes" onclick="selectClientByIndex(${index})">Gerenciar</button></td>
                 `;
@@ -364,7 +368,6 @@
             persistData();
         }
 
-        // Função de Busca Rápida por Nome ou Telefone digitado
         function filterClientByName() {
             const query = document.getElementById('searchClientInput').value.toLowerCase().trim();
             if (!query) {
@@ -376,7 +379,6 @@
             );
             renderTableAndSelect(filtered);
             
-            // Se achar exatamente ou a primeira correspondência, já seleciona automaticamente
             if (filtered.length > 0) {
                 const realIndex = clientsList.findIndex(c => c.id === filtered[0].id);
                 selectClientByIndex(realIndex);
@@ -396,12 +398,13 @@
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
 
-            const daysLeft = calculateDaysLeft(c);
+            // Atualiza os dados no painel de destaque na frente com o formato idêntico ao cartão
+            const dates = getClientCardDates(c);
             document.getElementById('previewId').innerText = c.id;
             document.getElementById('previewName').innerText = c.name;
             document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone';
             document.getElementById('previewPoints').innerText = `${c.points} pts`;
-            document.getElementById('previewDays').innerText = daysLeft >= 0 ? `${daysLeft} dias restantes` : 'Expirado';
+            document.getElementById('previewDatesText').innerHTML = `📅 Atualizado em ${dates.updatedFormatted} - Válido até ${dates.expiryFormatted}`;
             document.getElementById('previewFinance').innerText = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
         }
 
@@ -414,7 +417,7 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
-                clientsList[currentIndex].lastUpdate = new Date().toISOString();
+                clientsList[currentIndex].lastUpdate = new Date().toISOString(); // Atualiza a data para hoje automaticamente
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -444,7 +447,7 @@
                 clientsList[currentIndex].days = val;
                 clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
-                alert("Validade de " + val + " dias fixada!");
+                alert("Validade de " + val + " dias fixada e data atualizada!");
             }
         }
 
@@ -505,16 +508,20 @@
         }
 
         function exportToExcelXLSX() {
-            let dataExport = clientsList.map(c => ({
-                "ID": c.id,
-                "Nome": c.name,
-                "WhatsApp": c.phone,
-                "Indicada Por": c.ref,
-                "Pontos": c.points,
-                "Validade (Dias)": c.days || 60,
-                "Financeiro": c.finance || '',
-                "Anotações": c.notes || ''
-            }));
+            let dataExport = clientsList.map(c => {
+                let dates = getClientCardDates(c);
+                return {
+                    "ID": c.id,
+                    "Nome": c.name,
+                    "WhatsApp": c.phone,
+                    "Indicada Por": c.ref,
+                    "Pontos": c.points,
+                    "Atualizado em": dates.updatedFormatted,
+                    "Válido até": dates.expiryFormatted,
+                    "Financeiro": c.finance || '',
+                    "Anotações": c.notes || ''
+                };
+            });
 
             const worksheet = XLSX.utils.json_to_sheet(dataExport);
             const workbook = XLSX.utils.book_new();
@@ -584,7 +591,7 @@
                             ref: ref || 'Direto', 
                             points: points, 
                             days: days, 
-                            lastUpdate: "2026-10-15T00:00:00.000Z", 
+                            lastUpdate: new Date().toISOString(), 
                             finance: finance || '', 
                             notes: notes || '' 
                         });
@@ -594,7 +601,7 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes importadas com sucesso!`);
+                        alert(`Sucesso! ${imported.length} clientes importadas com datas sincronizadas!`);
                     } else {
                         alert("A planilha parece estar vazia.");
                     }
