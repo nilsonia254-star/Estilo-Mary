@@ -37,11 +37,13 @@
         .btn-blue { background: #00A8E8; color: #ffffff; width: 100%; margin-top: 10px; }
         .table-section { margin-top: 24px; border-top: 1px solid #232733; padding-top: 20px; overflow-x: auto; }
         .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 750px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 850px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #232733; }
         th { color: #a0a6b8; font-weight: 600; }
         .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; }
         .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
+        .badge-days { background: #D4AF3722; color: #FFD700; padding: 3px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #D4AF3744; }
+        .badge-expired { background: #ee525322; color: #ff6b6b; padding: 3px 8px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; }
     </style>
 </head>
 <body>
@@ -121,7 +123,7 @@
             </div>
             <table>
                 <thead>
-                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada por</th><th>Pontos</th><th>Validade</th><th>Financeiro / Devendo</th><th>Ação</th></tr>
+                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Total Pontos</th><th>Dias Restantes</th><th>Financeiro</th><th>Ação</th></tr>
                 </thead>
                 <tbody id="clientTableBody"></tbody>
             </table>
@@ -130,11 +132,23 @@
     <script>
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
-            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, finance: "Pago adiantado", notes: "Cliente VIP" }
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: new Date().toISOString(), finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
         function persistData() {
             localStorage.setItem('mary_clients_list', JSON.stringify(clientsList));
+        }
+
+        // Função para calcular quantos dias faltam para vencer com base na data da última atualização
+        function calculateDaysLeft(client) {
+            if (!client.lastUpdate) return client.days || 60;
+            const updateDate = new Date(client.lastUpdate);
+            const expiryDays = client.days || 60;
+            const expiryDate = new Date(updateDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
+            const today = new Date();
+            const diffTime = expiryDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
         }
 
         const weeklyReferrals = { labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'], data: [1, 3, 2, 4, 5, 6] };
@@ -166,13 +180,32 @@
             const select = document.getElementById('selectClient');
             tbody.innerHTML = '';
             select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
+            
             clientsList.forEach((client, index) => {
+                const daysLeft = calculateDaysLeft(client);
+                let daysBadge = `<span class="badge-days">⏳ ${daysLeft} dias</span>`;
+                if (daysLeft < 0) {
+                    daysBadge = `<span class="badge-expired">⚠️ Expirado</span>`;
+                } else if (daysLeft === 0) {
+                    daysBadge = `<span class="badge-expired">⚠️ Vence hoje</span>`;
+                }
+
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${client.id}</td><td>${client.name}</td><td>${client.phone || '-'}</td><td><span class="badge-ref">${client.ref || 'Direto'}</span></td><td>${client.points}/10</td><td>${client.days} dias</td><td style="color: #FFD700; font-size: 12px;">${client.finance || '-'}</td><td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>`;
+                tr.innerHTML = `
+                    <td>${client.id}</td>
+                    <td>${client.name}</td>
+                    <td>${client.phone || '-'}</td>
+                    <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
+                    <td style="font-weight: bold; color: #FFD700;">⭐ ${client.points} pts</td>
+                    <td>${daysBadge}</td>
+                    <td style="color: #FFD700; font-size: 12px;">${client.finance || '-'}</td>
+                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">📝 Gerenciar</button></td>
+                `;
                 tbody.appendChild(tr);
+
                 const opt = document.createElement('option');
                 opt.value = index;
-                opt.text = `[${client.id}] ${client.name} (${client.points}/10 pts)`;
+                opt.text = `[${client.id}] ${client.name} (${client.points} pts - ${daysLeft > 0 ? daysLeft + ' dias restantes' : 'Vencido'})`;
                 select.appendChild(opt);
             });
             document.getElementById('totalClientsCount').innerText = clientsList.length;
@@ -202,6 +235,7 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
+                clientsList[currentIndex].lastUpdate = new Date().toISOString(); // Atualiza a contagem dos dias ao ganhar pontos
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -210,6 +244,7 @@
         function resetPoints() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].points = 0;
+                clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -228,6 +263,7 @@
             if(clientsList.length > 0) {
                 const val = parseInt(document.getElementById('validityDays').value) || 60;
                 clientsList[currentIndex].days = val;
+                clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
                 alert("Validade de " + val + " dias fixada para esta cliente!");
             }
@@ -264,7 +300,7 @@
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
                 const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
                 const newId = "EB-100" + (clientsList.length + 1);
-                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, finance: "", notes: "" });
+                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, lastUpdate: new Date().toISOString(), finance: "", notes: "" });
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
                 alert("Nova cliente cadastrada e salva com sucesso!");
@@ -298,7 +334,6 @@
             link.click();
         }
 
-        // Importador Inteligente de Excel (.xlsx / .csv): Identifica campos por conteúdo e tipo automaticamente
         function importFromExcel(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -326,7 +361,6 @@
                         let finance = '';
                         let notes = '';
 
-                        // Varre todas as colunas da linha do Excel e classifica o dado pelo padrão correto
                         cols.forEach(val => {
                             if (val === null || val === undefined) return;
                             let strVal = String(val).trim();
@@ -334,18 +368,14 @@
                             if (strVal.startsWith('EB-')) {
                                 id = strVal;
                             } else if (strVal.replace(/\D/g, '').length >= 10 && strVal.replace(/\D/g, '').length <= 13) {
-                                // É um número de telefone com DDD válido
                                 phone = strVal.replace(/\D/g, '');
                             } else if (!isNaN(strVal) && strVal !== '' && parseInt(strVal) <= 50 && points === 0 && !strVal.includes('119')) {
-                                // É o número de pontos (geralmente menor ou igual a 50)
                                 points = parseInt(strVal);
                             } else if (!isNaN(strVal) && parseInt(strVal) > 50) {
-                                // É a quantidade de dias de validade
                                 days = parseInt(strVal);
                             } else if (strVal.toLowerCase() === 'direto' || strVal.includes('[EB-')) {
                                 ref = strVal;
                             } else if (!name && isNaN(strVal) && strVal.length > 2 && !strVal.toLowerCase().includes('pagou') && !strVal.toLowerCase().includes('dev')) {
-                                // Se não tem nome ainda e é texto puro, é o Nome da cliente
                                 name = strVal;
                             } else if (!finance && (strVal.toLowerCase().includes('pagou') || strVal.toLowerCase().includes('dev') || strVal.toLowerCase().includes('pix') || strVal.toLowerCase().includes('adiantado'))) {
                                 finance = strVal;
@@ -354,7 +384,6 @@
                             }
                         });
 
-                        // Fallback por ordem caso alguma coluna venha vazia
                         if (!name && cols[1]) name = String(cols[1]);
                         if (!phone && cols[2]) phone = String(cols[2]).replace(/\D/g, '');
                         if (points === 0 && !isNaN(cols[4])) points = parseInt(cols[4]) || 0;
@@ -366,6 +395,7 @@
                             ref: ref || 'Direto', 
                             points: points, 
                             days: days, 
+                            lastUpdate: new Date().toISOString(),
                             finance: finance || '', 
                             notes: notes || '' 
                         });
@@ -375,7 +405,7 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes foram importadas corretamente com nomes e telefones alinhados!`);
+                        alert(`Sucesso! ${imported.length} clientes foram importadas com contagem de pontos e prazos calculados!`);
                     } else {
                         alert("A planilha parece estar vazia ou fora do formato esperado.");
                     }
