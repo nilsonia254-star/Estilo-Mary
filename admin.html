@@ -14,6 +14,15 @@
         .dashboard-container { width: 100%; max-width: 950px; background: #14161d; border-radius: 16px; padding: 24px; border: 1px solid #232733; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .header-title { color: #FFD700; font-size: 22px; margin-bottom: 20px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .counter-badge { background: #1a1d26; border: 1px solid #FFD700; color: #FFD700; font-size: 13px; padding: 6px 12px; border-radius: 20px; }
+        
+        /* Caixa de Resumo em Destaque na Frente do Painel */
+        .quick-preview-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 2px solid #D4AF37; border-radius: 14px; padding: 18px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); }
+        .preview-title { color: #FFD700; font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; }
+        .preview-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .preview-name { font-size: 16px; font-weight: bold; color: #ffffff; }
+        .preview-details { font-size: 13px; color: #a0a6b8; display: flex; gap: 15px; flex-wrap: wrap; }
+        .preview-highlight { color: #FFD700; font-weight: bold; }
+
         .chart-box { background: #1a1d26; border: 1px solid #2a2e3d; border-radius: 12px; padding: 16px; margin-bottom: 24px; height: 280px; position: relative; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .chart-toggle-btn { background: #101217; border: 1px solid #2a2e3d; color: #a0a6b8; padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; }
@@ -52,6 +61,28 @@
             <span>✨ Painel da Gestão - Designer Estilo Mary</span>
             <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
         </div>
+
+        <!-- PAINEL DE RESUMO EM DESTAQUE NA FRENTE -->
+        <div class="quick-preview-box">
+            <div class="preview-title">
+                <span>⭐ Cliente Selecionada em Destaque</span>
+                <span id="previewId" style="color: #a0a6b8;">EB-1001</span>
+            </div>
+            <div class="preview-content">
+                <div>
+                    <div class="preview-name" id="previewName">Carregando...</div>
+                    <div style="font-size: 12px; color: #00d2d3; margin-top: 2px;" id="previewPhone">-</div>
+                </div>
+                <div class="preview-details">
+                    <div>Pontos: <span class="preview-highlight" id="previewPoints">0 pts</span></div>
+                    <div>Validade: <span class="preview-highlight" id="previewDays">60 dias</span></div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; font-size: 12px; color: #FFD700; border-top: 1px solid #232733; padding-top: 6px;" id="previewFinance">
+                Financeiro: -
+            </div>
+        </div>
+
         <div class="chart-box">
             <div class="chart-header">
                 <span style="font-size: 14px; font-weight: bold; color: #0088ff;">👥 Pessoas que Vieram por Indicação</span>
@@ -139,12 +170,16 @@
             localStorage.setItem('mary_clients_list', JSON.stringify(clientsList));
         }
 
-        // Função para calcular quantos dias faltam para vencer com base na data da última atualização
+        // Correção segura do cálculo de dias para evitar números absurdos
         function calculateDaysLeft(client) {
-            if (!client.lastUpdate) return client.days || 60;
+            let totalDaysAllowed = parseInt(client.days) || 60;
+            if (!client.lastUpdate) {
+                return totalDaysAllowed; // Se não tem data gravada, retorna o total padrão de dias
+            }
             const updateDate = new Date(client.lastUpdate);
-            const expiryDays = client.days || 60;
-            const expiryDate = new Date(updateDate.getTime() + (expiryDays * 24 * 60 * 60 * 1000));
+            if (isNaN(updateDate.getTime())) return totalDaysAllowed;
+            
+            const expiryDate = new Date(updateDate.getTime() + (totalDaysAllowed * 24 * 60 * 60 * 1000));
             const today = new Date();
             const diffTime = expiryDate - today;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -224,6 +259,15 @@
             document.getElementById('validityDays').value = c.days || 60;
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
+
+            // Atualiza o painel de resumo na frente da tela
+            const daysLeft = calculateDaysLeft(c);
+            document.getElementById('previewId').innerText = c.id;
+            document.getElementById('previewName').innerText = c.name;
+            document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone cadastrado';
+            document.getElementById('previewPoints').innerText = `${c.points} pts`;
+            document.getElementById('previewDays').innerText = daysLeft >= 0 ? `${daysLeft} dias restantes` : 'Expirado';
+            document.getElementById('previewFinance').innerText = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
         }
 
         function loadClientFromSelect() {
@@ -235,7 +279,7 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
-                clientsList[currentIndex].lastUpdate = new Date().toISOString(); // Atualiza a contagem dos dias ao ganhar pontos
+                clientsList[currentIndex].lastUpdate = new Date().toISOString();
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -278,6 +322,7 @@
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
                 clientsList[currentIndex].days = parseInt(document.getElementById('validityDays').value) || 60;
                 renderTableAndSelect();
+                selectClientByIndex(currentIndex);
                 alert("Dados da cliente salvos com sucesso no celular!");
             }
         }
@@ -405,7 +450,7 @@
                         clientsList = imported;
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Sucesso! ${imported.length} clientes foram importadas com contagem de pontos e prazos calculados!`);
+                        alert(`Sucesso! ${imported.length} clientes importadas com dias restantes corrigidos!`);
                     } else {
                         alert("A planilha parece estar vazia ou fora do formato esperado.");
                     }
