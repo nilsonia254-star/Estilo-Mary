@@ -19,8 +19,8 @@
         .dates-info { font-size: 10px; color: #00d2d3; margin-top: 4px; font-weight: 600; }
 
         .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
-        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px dashed #2a2e3d; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: #a0a6b8; position: relative; transition: all 0.3s ease; }
-        .stamp.filled { background: linear-gradient(135deg, #FFE58F, #D4AF37); border: 2px solid #FFD700; color: #0A0A0A; font-size: 16px; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
+        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px dashed #2a2e3d; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 15px; color: #a0a6b8; position: relative; transition: all 0.3s ease; }
+        .stamp.filled { background: linear-gradient(135deg, #FFE58F, #D4AF37); border: 2px solid #FFD700; color: #0A0A0A; box-shadow: 0 0 10px rgba(212, 175, 55, 0.4); }
 
         .total-box { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 10px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
         .total-box span { font-size: 12px; font-weight: bold; color: #a0a6b8; text-transform: uppercase; }
@@ -63,7 +63,7 @@
             Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
         </div>
 
-        <!-- Botão de WhatsApp atualizado com o número correto e completo da Mariana -->
+        <!-- Botão de WhatsApp atualizado com o número correto e completo -->
         <a id="whatsappBtn" href="#" target="_blank" class="action-btn btn-whatsapp">
             📅 Agendar: WhatsApp (11) 96706-6029
         </a>
@@ -94,22 +94,26 @@
         document.getElementById('totalPointsText').innerText = `${points} PTS`;
         document.getElementById('validityDaysText').innerText = validityDays;
 
-        // Datas formatadas
         const updateDate = new Date();
         const expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
         document.getElementById('datesDisplay').innerText = `Atualizado em ${formatDate(updateDate)} - Válido até ${formatDate(expiryDate)}`;
 
-        // Número correto e completo da Mariana configurado no link do WhatsApp
+        // Número configurado corretamente para o WhatsApp
         const correctPhone = "5511967066029";
         const scheduleMsg = encodeURIComponent(`Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`);
         document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${scheduleMsg}`;
 
-        // Renderizar os 10 selos
+        // Renderizar os 10 selos mantendo o visual original (Estrela no 1 e números de 2 a 10)
         const grid = document.getElementById('stampsGrid');
         for (let i = 1; i <= 10; i++) {
             const stamp = document.createElement('div');
             stamp.className = `stamp ${i <= points ? 'filled' : ''}`;
-            stamp.innerHTML = i === 1 ? '★' : (i <= points ? '✓' : i);
+            
+            if (i === 1) {
+                stamp.innerHTML = i <= points ? '✓' : '★';
+            } else {
+                stamp.innerHTML = i <= points ? '✓' : i;
+            }
             grid.appendChild(stamp);
         }
 
