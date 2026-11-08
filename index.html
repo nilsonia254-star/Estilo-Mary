@@ -1,4 +1,87 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartão Fidelidade Digital - Designer Estilo Mary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: #0A0A0A; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 12px; }
+        .card-container { width: 100%; max-width: 420px; background: #14161d; border-radius: 20px; padding: 20px; border: 2px solid #D4AF37; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); text-align: center; }
+        .brand-title { color: #FFD700; font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .brand-subtitle { font-size: 11px; color: #a0a6b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; font-weight: 600; }
+        
+        .welcome-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 1px solid #D4AF37; border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
+        .welcome-box h2 { font-size: 16px; color: #FFD700; margin-bottom: 6px; }
+        .welcome-box p { font-size: 12px; color: #ffffff; line-height: 1.4; }
+        
+        .points-display { font-size: 22px; font-weight: 800; color: #0A0A0A; margin: 10px 0 6px 0; background: linear-gradient(135deg, #FFE58F, #D4AF37); padding: 10px; border-radius: 12px; border: 1px solid #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; }
+
+        .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px solid #2a2e3d; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #a0a6b8; position: relative; transition: all 0.3s ease; padding: 4px; text-align: center; }
+        .stamp.filled { background: #14161d; border: 2px solid #C71585; color: #ffffff; box-shadow: 0 0 8px rgba(199, 21, 133, 0.4); }
+        .stamp-value { font-size: 13px; font-weight: 800; color: #FF69B4; }
+        .stamp-label { font-size: 8px; color: #ffffff; margin-top: 1px; line-height: 1; }
+        .stamp-date { font-size: 8px; color: #00d2d3; margin-top: 2px; font-weight: 600; }
+        .stamp.empty { font-size: 14px; color: #a0a6b8; }
+
+        .total-box { background: linear-gradient(135deg, #FFE58F, #D4AF37); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: #0A0A0A; font-weight: 800; }
+        .total-box span { font-size: 13px; text-transform: uppercase; }
+        .total-box strong { font-size: 18px; }
+
+        .info-card { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 11px; color: #a0a6b8; line-height: 1.5; }
+        .info-card strong { color: #ffffff; display: block; margin-bottom: 2px; }
+
+        .action-btn { width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; text-decoration: none; display: block; margin-bottom: 10px; text-align: center; transition: opacity 0.2s; }
+        .action-btn:hover { opacity: 0.9; }
+        .btn-whatsapp { background: #00C853; color: #ffffff; }
+        .btn-referral { background: linear-gradient(135deg, #00A8E8, #007EA7); color: #ffffff; }
+        .footer-tip { font-size: 10px; color: #a0a6b8; margin-top: 8px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="brand-title">✨ Designer Estilo Mary ✨</div>
+        <div class="brand-subtitle">Cartão Fidelidade Digital</div>
+
+        <div class="welcome-box">
+            <h2 id="clientGreeting">Olá, Cliente! 👋</h2>
+            <p id="recentActivityText">Você acumulou pontos em atendimento recente 💅</p>
+            <div class="points-display" id="pointsDisplay">0 pontos 💖</div>
+            <div class="dates-info" id="datesDisplay">Atualizado em: --/--/---- - Válido até: --/--/----</div>
+        </div>
+
+        <div class="stamps-grid" id="stampsGrid"></div>
+
+        <div class="total-box">
+            <span>Total Acumulado</span>
+            <strong id="totalPointsText">0 PTS</strong>
+        </div>
+
+        <div class="info-card">
+            <strong>📍 Endereço do Estúdio:</strong>
+            Rua Nova Aliança, nº 2B (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
+            <br><br>
+            <strong>🎁 Regra do Cartão:</strong>
+            Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
+        </div>
+
+        <!-- Botão de Agendamento (WhatsApp da Mariana) -->
+        <a id="whatsappBtn" href="#" target="_blank" class="action-btn btn-whatsapp">
+            📅 Agende: WhatsApp (11) 96706-6029
+        </a>
+
+        <!-- Botão de Indicação (Abre o WhatsApp para compartilhar com uma amiga) -->
+        <button onclick="shareReferral()" class="action-btn btn-referral">
+            🎁 Indique uma amiga e ganhe +5 pts
+        </button>
+
+        <div class="footer-tip">Toque nos botões acima para agendar ou indicar</div>
+    </div>
+
+    <script>
         function formatDate(dateObj) {
             const day = String(dateObj.getDate()).padStart(2, '0');
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -18,7 +101,6 @@
         const points = parseInt(urlParams.get('pontos')) || 0;
         const validityDays = parseInt(urlParams.get('dias')) || 60;
         
-        // Pega a data fixa passada pelo painel admin ou usa a de hoje se não houver
         const dateParam = urlParams.get('data');
         const updateDate = dateParam ? new Date(dateParam) : new Date();
 
@@ -27,7 +109,6 @@
         document.getElementById('totalPointsText').innerText = `${points} PTS`;
         document.getElementById('validityDaysText').innerText = validityDays;
 
-        // Calcula a validade somando os 60 dias em cima da data fixa do atendimento
         const expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
         document.getElementById('datesDisplay').innerText = `Atualizado em ${formatFullDate(updateDate)} - Válido até ${formatFullDate(expiryDate)}`;
 
@@ -35,12 +116,10 @@
             document.getElementById('recentActivityText').innerText = `Você ganhou pontos em ${formatDate(updateDate)} 🎉`;
         }
 
-        // Configuração do botão de Agendamento (WhatsApp da Mariana)
         const correctPhone = "5511967066029";
         const scheduleMsg = encodeURIComponent(`Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`);
         document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${scheduleMsg}`;
 
-        // Renderizar os 10 selos com o histórico detalhado
         const grid = document.getElementById('stampsGrid');
         let historyEntries = [];
         let ptsLeft = points;
@@ -71,7 +150,6 @@
             grid.appendChild(stamp);
         }
 
-        // Função de Indicação corrigida para abrir a tela de compartilhamento com a amiga
         function shareReferral() {
             const currentUrl = window.location.href.split('?')[0];
             const refLink = `${currentUrl}?ref=${clientId}`;
@@ -81,3 +159,5 @@
             window.open(waShareUrl, '_blank');
         }
     </script>
+</body>
+</html>
