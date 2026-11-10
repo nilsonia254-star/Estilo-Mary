@@ -260,7 +260,7 @@
     <script>
         let savedClients = localStorage.getItem('mary_clients_list');
         let clientsList = savedClients ? JSON.parse(savedClients) : [
-            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: new Date().toISOString(), finance: "Pago adiantado", notes: "Cliente VIP" }
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-11-09", finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
         function persistData() {
@@ -268,29 +268,60 @@
             updateChartData();
         }
 
-        function formatDate(dateObj) {
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const year = dateObj.getFullYear();
+        // Função segura para formatar data sem sofrer alteração de fuso horário
+        function formatDateString(dateStr) {
+            if (!dateStr) return "--/--/----";
+            // Se já estiver no formato AAAA-MM-DD
+            if (dateStr.includes('-') && dateStr.length === 10) {
+                const parts = dateStr.split('-');
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return "--/--/----";
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
             return `${day}/${month}/${year}`;
         }
 
+        function getTodayIsoString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         function getClientCardDates(client) {
-            let updateDate = client.lastUpdate ? new Date(client.lastUpdate) : new Date();
-            if (isNaN(updateDate.getTime()) || updateDate.getFullYear() > 2030 || updateDate.getFullYear() < 2024) {
-                updateDate = new Date();
-            }
+            // Usa a data fixa salva no cliente. Se não tiver, usa a data de hoje apenas como fallback inicial.
+            let updateDateStr = client.lastUpdate ? client.lastUpdate.slice(0, 10) : getTodayIsoString();
+            
+            // Cria os objetos de data zerando as horas para calcular os dias com precisão exata
+            const updateDate = new Date(updateDateStr + 'T00:00:00');
             
             let validityDays = parseInt(client.days) || 60;
-            let expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
             
-            const today = new Date();
-            const diffTime = expiryDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            // Calcula a data de expiração somando exatamente 60 dias (ou o valor de 'days') à data de atualização fixa
+            const expiryDate = new Date(updateDate.getTime());
+            expiryDate.setDate(expiryDate.getDate() + validityDays);
+
+            // Pega a data de hoje (sem horário)
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const expiryDay = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+
+            const diffTime = expiryDay - today;
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            // Formata a data de expiração para exibição
+            const expDayStr = String(expiryDay.getDate()).padStart(2, '0');
+            const expMonthStr = String(expiryDay.getMonth() + 1).padStart(2, '0');
+            const expYearStr = expiryDay.getFullYear();
+            const expiryFormatted = `${expDayStr}/${expMonthStr}/${expYearStr}`;
 
             return {
-                updatedFormatted: formatDate(updateDate),
-                expiryFormatted: formatDate(expiryDate),
+                updatedFormatted: formatDateString(updateDateStr),
+                expiryFormatted: expiryFormatted,
                 daysLeft: diffDays
             };
         }
@@ -320,7 +351,7 @@
             if(currentChartMode === 'monthly') {
                 let counts = new Array(12).fill(0);
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
+                    let d = new Date(c.lastUpdate || getTodayIsoString());
                     if (!isNaN(d.getTime())) {
                         counts[d.getMonth()]++;
                     }
@@ -330,7 +361,7 @@
             } else {
                 let yearsCount = {};
                 clientsList.forEach(c => {
-                    let d = c.lastUpdate ? new Date(c.lastUpdate) : new Date();
+                    let d = new Date(c.lastUpdate || getTodayIsoString());
                     let y = !isNaN(d.getTime()) ? d.getFullYear() : 2026;
                     yearsCount[y] = (yearsCount[y] || 0) + 1;
                 });
@@ -436,6 +467,8 @@
             if(clientsList.length > 0) {
                 clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
                 clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
+                // Atualiza a data de modificação apenas quando ganha ponto
+                clientsList[currentIndex].lastUpdate = getTodayIsoString();
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -444,6 +477,7 @@
         function resetPoints() {
             if(clientsList.length > 0) {
                 clientsList[currentIndex].points = 0;
+                clientsList[currentIndex].lastUpdate = getTodayIsoString();
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -499,7 +533,17 @@
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
                 const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
                 const newId = "EB-100" + (clientsList.length + 1);
-                clientsList.push({ id: newId, name: name, phone: phone || "", ref: ref, points: 0, days: 60, lastUpdate: new Date().toISOString(), finance: "", notes: "" });
+                clientsList.push({ 
+                    id: newId, 
+                    name: name, 
+                    phone: phone || "", 
+                    ref: ref, 
+                    points: 0, 
+                    days: 60, 
+                    lastUpdate: getTodayIsoString(), // Data fixa gravada no cadastro
+                    finance: "", 
+                    notes: "" 
+                });
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
                 alert("Nova cliente cadastrada!");
@@ -544,7 +588,7 @@
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
             
-            XLSX.writeFile(workbook, `Clientes_Estilo_Mary_${new Date().toISOString().slice(0,10)}.xlsx`);
+            XLSX.writeFile(workbook, `Clientes_Estilo_Mary_${getTodayIsoString()}.xlsx`);
         }
 
         function importFromExcel(event) {
@@ -565,7 +609,7 @@
                         const cols = jsonRows[i];
                         if (!cols || cols.length === 0) continue;
 
-                        let id = `EB-100${i}`;
+                        let id = `EB-100${clientsList.length + i}`;
                         let name = '';
                         let phone = '';
                         let ref = 'Direto';
@@ -599,7 +643,7 @@
                                 ref: ref,
                                 points: points,
                                 days: days,
-                                lastUpdate: new Date().toISOString(),
+                                lastUpdate: getTodayIsoString(),
                                 finance: finance,
                                 notes: notes
                             });
@@ -607,12 +651,12 @@
                     }
 
                     if (imported.length > 0) {
-                        clientsList = imported;
+                        clientsList = clientsList.concat(imported);
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert("Clientes importados com sucesso!");
+                        alert(imported.length + " clientes importadas com sucesso!");
                     } else {
-                        alert("Não foi possível encontrar clientes válidos no arquivo.");
+                        alert("Nenhuma cliente válida encontrada no arquivo.");
                     }
                 } catch (err) {
                     alert("Erro ao ler o arquivo Excel: " + err.message);
@@ -621,9 +665,11 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Inicializa a tabela e seleciona o primeiro ao carregar a página
+        // Inicializa o painel carregando o primeiro cliente
         renderTableAndSelect();
-        selectClientByIndex(0);
+        if(clientsList.length > 0) {
+            selectClientByIndex(0);
+        }
     </script>
 </body>
 </html>
