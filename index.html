@@ -17,7 +17,7 @@
         .welcome-box p { font-size: 12px; color: #ffffff; line-height: 1.4; }
         
         .points-display { font-size: 22px; font-weight: 800; color: #0A0A0A; margin: 10px 0 6px 0; background: linear-gradient(135deg, #FFE58F, #D4AF37); padding: 10px; border-radius: 12px; border: 1px solid #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
-        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; }
+        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; line-height: 1.4; }
 
         .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
         .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px solid #2a2e3d; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #a0a6b8; position: relative; transition: all 0.3s ease; padding: 4px; text-align: center; }
@@ -73,7 +73,7 @@
             📅 Agende: WhatsApp (11) 96706-6029
         </a>
 
-        <!-- Botão de Indicação (Abre o WhatsApp para compartilhar com uma amiga) -->
+        <!-- Botão de Indicação -->
         <button onclick="shareReferral()" class="action-btn btn-referral">
             🎁 Indique uma amiga e ganhe +5 pts
         </button>
@@ -82,17 +82,26 @@
     </div>
 
     <script>
-        function formatDate(dateObj) {
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            return `${day}/${month}`;
+        function formatDateString(dateStr) {
+            if (!dateStr) return "--/--/----";
+            if (dateStr.includes('-') && dateStr.length === 10) {
+                const parts = dateStr.split('-');
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return "--/--/----";
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
         }
 
-        function formatFullDate(dateObj) {
-            const day = String(dateObj.getDate()).padStart(2, '0');
-            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const year = dateObj.getFullYear();
-            return `${day}/${month}/${year}`;
+        function getTodayIsoString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -101,19 +110,45 @@
         const points = parseInt(urlParams.get('pontos')) || 0;
         const validityDays = parseInt(urlParams.get('dias')) || 60;
         
+        // Pega a data fixa enviada pelo admin. Se não vier, usa a de hoje travada.
         const dateParam = urlParams.get('data');
-        const updateDate = dateParam ? new Date(dateParam) : new Date();
+        const updateDateStr = dateParam ? dateParam.slice(0, 10) : getTodayIsoString();
+
+        // Converte para objetos Date sem problemas de fuso horário
+        const updateDate = new Date(updateDateStr + 'T00:00:00');
+        
+        // Calcula a data de expiração somando os dias fixos
+        const expiryDate = new Date(updateDate.getTime());
+        expiryDate.setDate(expiryDate.getDate() + validityDays);
+
+        // Calcula os dias restantes comparando com a data de hoje (sem horas)
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const expiryDay = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+        
+        const diffTime = expiryDay - today;
+        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
         document.getElementById('clientGreeting').innerText = `Olá, ${clientName}! 👋`;
         document.getElementById('pointsDisplay').innerText = `${points} pontos 💖`;
         document.getElementById('totalPointsText').innerText = `${points} PTS`;
         document.getElementById('validityDaysText').innerText = validityDays;
 
-        const expiryDate = new Date(updateDate.getTime() + (validityDays * 24 * 60 * 60 * 1000));
-        document.getElementById('datesDisplay').innerText = `Atualizado em ${formatFullDate(updateDate)} - Válido até ${formatFullDate(expiryDate)}`;
+        const updateFormatted = formatDateString(updateDateStr);
+        
+        const expDayStr = String(expiryDay.getDate()).padStart(2, '0');
+        const expMonthStr = String(expiryDay.getMonth() + 1).padStart(2, '0');
+        const expYearStr = expiryDay.getFullYear();
+        const expiryFormatted = `${expDayStr}/${expMonthStr}/${expYearStr}`;
+
+        let daysTextBadge = `⏳ ${diffDays} dias restantes`;
+        if (diffDays < 0) daysTextBadge = `⚠️ Vencido há ${Math.abs(diffDays)} dias`;
+        else if (diffDays === 0) daysTextBadge = `⚠️ Vence hoje!`;
+
+        document.getElementById('datesDisplay').innerHTML = `Atualizado em ${updateFormatted} - Válido até ${expiryFormatted}<br>(${daysTextBadge})`;
 
         if (points > 0) {
-            document.getElementById('recentActivityText').innerText = `Você ganhou pontos em ${formatDate(updateDate)} 🎉`;
+            document.getElementById('recentActivityText').innerText = `Você acumulou pontos em ${updateFormatted} 🎉`;
         }
 
         const correctPhone = "5511967066029";
@@ -128,7 +163,7 @@
             let chunk = ptsLeft >= 5 ? 5 : (ptsLeft >= 3 ? 3 : ptsLeft);
             historyEntries.push({
                 val: `+${chunk}`,
-                date: formatDate(updateDate)
+                date: updateFormatted.slice(0, 5) // Ex: "09/11"
             });
             ptsLeft -= chunk;
         }
