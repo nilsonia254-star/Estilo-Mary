@@ -162,7 +162,7 @@
         <div class="grid-layout">
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
-                button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
+                <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
                 
                 <!-- CAMPO DE BUSCA RÁPIDA POR NOME -->
                 <label for="searchClientInput" style="color: #00A8E8; font-weight: bold;">🔍 Digite o Nome para Achar Rápido:</label>
@@ -617,9 +617,20 @@
                 alert("Esta cliente não tem número de WhatsApp cadastrado!");
                 return;
             }
+            
+            let telefoneLimpo = c.phone.replace(/\D/g, '');
+            if (!telefoneLimpo.startsWith('55')) {
+                telefoneLimpo = '55' + telefoneLimpo;
+            }
+
             const dates = getClientCardDates(c);
-            const msg = encodeURIComponent(`Olá *${c.name}*! ✨ Aqui está o status do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n⭐ ID: ${c.id}\n🎁 Seus Pontos: ${c.points} pts\n📅 Válido até: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`);
-            window.open(`https://wa.me/55${c.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
+            
+            // Texto limpo sem erros de formatação ou caracteres corrompidos
+            const textoMensagem = `Olá *${c.name}*! Aqui está o status atualizado do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n- ID: ${c.id}\n- Seus Pontos: ${c.points} pts\n- Valido ate: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`;
+            
+            const msgCodificada = encodeURIComponent(textoMensagem);
+            const urlWhatsApp = `https://wa.me/${telefoneLimpo}?text=${msgCodificada}`;
+            window.open(urlWhatsApp, '_blank');
         }
 
         function exportToExcelXLSX() {
