@@ -156,7 +156,7 @@
             Atualizado em --/--/---- - Válido até --/--/----
         </div>
 
-        <!-- Grade de 10 Espaços exata da foto -->
+        <!-- Grade de 10 Espaços -->
         <div class="stamps-grid" id="stampsGrid"></div>
 
         <div class="total-accumulated">
@@ -201,21 +201,25 @@
             const params = getQueryParams();
             const clientName = params.nome || "Cliente";
             const points = parseInt(params.pontos) || 0;
-            const clientId = params.id || "EB-1001";
 
             document.getElementById('welcomeMsg').innerHTML = `Olá, <span>${clientName}</span> ! 💖`;
             document.getElementById('pointsBox').innerText = `${points} pontos`;
             document.getElementById('totalPointsText').innerText = `${points} PTS`;
-            document.getElementById('datesBox').innerText = `Atualizado em 02/11 - Válido até 01/01/2027`;
+            document.getElementById('datesBox').innerText = `Atualizado recentemente - Válido por 60 dias`;
 
-            // Renderiza os 10 espaços idênticos à foto
+            // Renderiza os 10 espaços preenchendo um a um sequencialmente conforme os pontos
             const grid = document.getElementById('stampsGrid');
             grid.innerHTML = '';
+            
+            // Pega a data atual formatada para ilustrar o atendimento recente no quadrado
+            const today = new Date();
+            const dateFormatted = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
+
             for (let i = 1; i <= 10; i++) {
                 const slot = document.createElement('div');
                 if (i <= points) {
                     slot.className = 'stamp-slot filled';
-                    slot.innerHTML = `<span class="slot-label">♥ Atend.</span><span class="slot-date">02/11</span>`;
+                    slot.innerHTML = `<span class="slot-label">♥ Atend.</span><span class="slot-date">${dateFormatted}</span>`;
                 } else {
                     slot.className = 'stamp-slot';
                     slot.innerText = i;
@@ -226,7 +230,6 @@
 
         function shareReferral() {
             const params = getQueryParams();
-            const name = params.nome || "Cliente";
             const id = params.id || "EB-1001";
             const text = `Olá! Indico o estúdio Designer Estilo Mary para você fazer suas sobrancelhas e cílios. Use meu ID (${id}) ao agendar!`;
             if (navigator.share) {
