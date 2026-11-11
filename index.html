@@ -3,229 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartão Fidelidade Digital - Designer Estilo Mary</title>
+    <title>Cartão Fidelidade - Designer Estilo Mary</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body { background-color: #0A0A0A; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 12px; }
-        .card-container { width: 100%; max-width: 420px; background: #14161d; border-radius: 20px; padding: 20px; border: 2px solid #D4AF37; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); text-align: center; }
-        .brand-title { color: #FFD700; font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px; }
-        .brand-subtitle { font-size: 11px; color: #a0a6b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; font-weight: 600; }
+        body {
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            padding: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card-container {
+            width: 100%;
+            max-width: 450px;
+            background: linear-gradient(135deg, #14161d 0%, #0d0f14 100%);
+            border-radius: 20px;
+            padding: 24px;
+            border: 2px solid #D4AF37;
+            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2);
+            text-align: center;
+        }
+        h1 { color: #FFD700; font-size: 22px; margin-bottom: 6px; font-weight: 800; }
+        p.subtitle { color: #a0a6b8; font-size: 13px; margin-bottom: 20px; }
         
-        .welcome-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 1px solid #D4AF37; border-radius: 14px; padding: 16px; margin-bottom: 16px; position: relative; }
-        .welcome-box h2 { font-size: 16px; color: #FFD700; margin-bottom: 6px; }
-        .welcome-box p { font-size: 12px; color: #ffffff; line-height: 1.4; }
-        
-        .points-display { font-size: 22px; font-weight: 800; color: #0A0A0A; margin: 10px 0 6px 0; background: linear-gradient(135deg, #FFE58F, #D4AF37); padding: 10px; border-radius: 12px; border: 1px solid #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
-        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; line-height: 1.4; }
+        .client-info-box {
+            background: #1a1d26;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2e3d;
+            text-align: left;
+        }
+        .client-info-box div { font-size: 13px; margin-bottom: 4px; color: #d0d5e2; }
+        .client-info-box span { color: #FFD700; font-weight: bold; }
 
-        .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
-        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px solid #2a2e3d; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #a0a6b8; position: relative; transition: all 0.3s ease; padding: 4px; text-align: center; }
-        .stamp.filled { background: #14161d; border: 2px solid #C71585; color: #ffffff; box-shadow: 0 0 8px rgba(199, 21, 133, 0.4); }
-        .stamp-value { font-size: 13px; font-weight: 800; color: #FF69B4; }
-        .stamp-label { font-size: 8px; color: #ffffff; margin-top: 1px; line-height: 1; }
-        .stamp-date { font-size: 8px; color: #00d2d3; margin-top: 2px; font-weight: 600; }
-        .stamp.empty { font-size: 14px; color: #a0a6b8; }
+        .stamps-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stamp-slot {
+            aspect-ratio: 1;
+            background: #101217;
+            border: 2px dashed #3a3f52;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #4a5166;
+            transition: all 0.3s ease;
+        }
+        .stamp-slot.filled {
+            background: radial-gradient(circle, #FFE58F 0%, #D4AF37 100%);
+            border: 2px solid #FFD700;
+            color: #0A0A0A;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
 
-        .total-box { background: linear-gradient(135deg, #FFE58F, #D4AF37); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: #0A0A0A; font-weight: 800; }
-        .total-box span { font-size: 13px; text-transform: uppercase; }
-        .total-box strong { font-size: 18px; }
+        .info-card-footer {
+            background: #1a1d26;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
+            color: #00d2d3;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border: 1px solid #232733;
+        }
 
-        .info-card { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 11px; color: #a0a6b8; line-height: 1.5; }
-        .info-card strong { color: #ffffff; display: block; margin-bottom: 2px; }
-
-        .action-btn { width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; text-decoration: none; display: block; margin-bottom: 10px; text-align: center; transition: opacity 0.2s; }
-        .action-btn:hover { opacity: 0.9; }
-        .btn-whatsapp { background: #00C853; color: #ffffff; }
-        .btn-referral { background: linear-gradient(135deg, #00A8E8, #007EA7); color: #ffffff; }
-        .footer-tip { font-size: 10px; color: #a0a6b8; margin-top: 8px; font-style: italic; }
+        .btn-admin-link {
+            display: inline-block;
+            background: #1a1d26;
+            color: #FFD700;
+            border: 1px solid #D4AF37;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-admin-link:hover {
+            background: #2a2e3d;
+        }
     </style>
 </head>
 <body>
+
     <div class="card-container">
-        <div class="brand-title">✨ Designer Estilo Mary ✨</div>
-        <div class="brand-subtitle">Cartão Fidelidade Digital</div>
+        <h1>✨ Designer Estilo Mary</h1>
+        <p class="subtitle">Cartão Fidelidade Digital</p>
 
-        <div class="welcome-box">
-            <h2 id="clientGreeting">Olá, Cliente! 👋</h2>
-            <p id="recentActivityText">Você acumulou pontos em atendimento recente 💅</p>
-            <div class="points-display" id="pointsDisplay">0 pontos 💖</div>
-            <div class="dates-info" id="datesDisplay">Cadastro em: --/--/---- - Válido até: --/--/----</div>
+        <div class="client-info-box" id="clientBox">
+            <div>Cliente: <span id="clientName">Carregando...</span></div>
+            <div>ID: <span id="clientId">--</span></div>
+            <div>Pontos Atuais: <span id="clientPoints">0</span> pts</div>
         </div>
 
-        <div class="stamps-grid" id="stampsGrid"></div>
-
-        <div class="total-box">
-            <span>Total Acumulado</span>
-            <strong id="totalPointsText">0 PTS</strong>
+        <!-- Grade de Carimbos (10 espaços) -->
+        <div class="stamps-grid" id="stampsGrid">
+            <!-- Gerado via JavaScript -->
         </div>
 
-        <div class="info-card">
-            <strong>📍 Endereço do Estúdio:</strong>
-            Rua Nova Aliança, nº 2B (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
-            <br><br>
-            <strong>🎁 Regra do Cartão:</strong>
-            Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
+        <div class="info-card-footer" id="cardValidity">
+            📅 Validade do ciclo: Carregando...
         </div>
 
-        <!-- Botão de Agendamento (WhatsApp da Mariana) -->
-        <a id="whatsappBtn" href="#" target="_blank" class="action-btn btn-whatsapp">
-            📅 Agende: WhatsApp (11) 96706-6029
-        </a>
-
-        <!-- Botão de Indicação -->
-        <button onclick="shareReferral()" class="action-btn btn-referral">
-            🎁 Indique uma amiga e ganhe +5 pts
-        </button>
-
-        <div class="footer-tip">Toque nos botões acima para agendar ou indicar</div>
+        <a href="admin.html" class="btn-admin-link">🔒 Acessar Painel Administrativo</a>
     </div>
 
     <script>
-        function formatDateString(dateStr) {
-            if (!dateStr) return "--/--/----";
-            if (dateStr.includes('-') && dateStr.length === 10) {
-                const parts = dateStr.split('-');
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            const d = new Date(dateStr);
-            if (isNaN(d.getTime())) return "--/--/----";
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-        function getTodayIsoString() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const clientName = urlParams.get('nome') || 'Cliente';
-        const clientId = (urlParams.get('id') || '').trim();
-        // Link de indicação: ?ref=EB-xxxx (a amiga ainda não tem cartão)
-        const refId = (urlParams.get('ref') || '').trim();
-        const isReferral = !clientId && refId !== '';
-        let points = parseInt(urlParams.get('pontos')) || 0;
-        const validityDays = parseInt(urlParams.get('dias')) || 60;
-        
-        // Pega a data fixa enviada pelo admin. Se não vier, usa a de hoje travada.
-        const dateParam = urlParams.get('data');
-        let updateDateStr = dateParam ? dateParam.slice(0, 10) : getTodayIsoString();
-        // Data faltando ou inválida no link: usa hoje (evita "NaN/NaN/NaN" no cartão)
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(updateDateStr) || isNaN(new Date(updateDateStr + 'T00:00:00').getTime())) {
-            updateDateStr = getTodayIsoString();
-        }
-
-        // Converte para objetos Date sem problemas de fuso horário
-        const updateDate = new Date(updateDateStr + 'T00:00:00');
-        
-        // Calcula a data de expiração somando os dias fixos
-        const expiryDate = new Date(updateDate.getTime());
-        expiryDate.setDate(expiryDate.getDate() + validityDays);
-
-        // Calcula os dias restantes comparando com a data de hoje (sem horas)
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const expiryDay = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
-        
-        const diffTime = expiryDay - today;
-        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-        // Prazo vencido: os pontos não valem mais (mesmo em link antigo)
-        const isExpired = diffDays < 0;
-        if (isExpired) points = 0;
-
-        document.getElementById('clientGreeting').innerText = `Olá, ${clientName}! 👋`;
-        document.getElementById('pointsDisplay').innerText = `${points} pontos 💖`;
-        document.getElementById('totalPointsText').innerText = `${points} PTS`;
-        document.getElementById('validityDaysText').innerText = validityDays;
-
-        const updateFormatted = formatDateString(updateDateStr);
-        
-        const expDayStr = String(expiryDay.getDate()).padStart(2, '0');
-        const expMonthStr = String(expiryDay.getMonth() + 1).padStart(2, '0');
-        const expYearStr = expiryDay.getFullYear();
-        const expiryFormatted = `${expDayStr}/${expMonthStr}/${expYearStr}`;
-
-        let daysTextBadge = `⏳ ${diffDays} dias restantes`;
-        if (diffDays < 0) daysTextBadge = `⚠️ Vencido há ${Math.abs(diffDays)} dias`;
-        else if (diffDays === 0) daysTextBadge = `⚠️ Vence hoje!`;
-
-        document.getElementById('datesDisplay').innerHTML = `Cadastro em ${updateFormatted} - Válido até ${expiryFormatted}<br>(${daysTextBadge})`;
-
-        if (points > 0) {
-            document.getElementById('recentActivityText').innerText = `Você acumulou pontos em ${updateFormatted} 🎉`;
-        }
-
-        const correctPhone = "5511967066029";
-        let scheduleText = `Olá Mariana! Gostaria de agendar meu horário no estúdio.`;
-        if (clientId) {
-            scheduleText = `Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`;
-        } else if (isReferral) {
-            scheduleText = `Olá Mariana! Fui indicada pela cliente do cartão ${refId} e gostaria de agendar meu primeiro horário no estúdio.`;
-        }
-        document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${encodeURIComponent(scheduleText)}`;
-
-        // Tela para quem chegou por indicação (ainda sem cartão)
-        if (isReferral) {
-            document.getElementById('clientGreeting').innerText = 'Olá! Você foi indicada 💖';
-            document.getElementById('recentActivityText').innerText = 'Agende seu primeiro atendimento e ganhe seu Cartão Fidelidade digital 💅';
-            document.getElementById('datesDisplay').innerText = `Indicação da cliente ${refId}`;
-        }
-
-        const grid = document.getElementById('stampsGrid');
-        // Cada quadrado = 1 atendimento. O painel envia os selos em "h" no formato pontos.DDMM (ex: 5.0211_3.0911)
-        let historyEntries = [];
-        if (urlParams.has('h')) {
-            urlParams.get('h').split('_').forEach(part => {
-                const m = /^(\d+)\.(\d{2})(\d{2})$/.exec(part);
-                if (m) historyEntries.push({ val: `+${m[1]}`, date: `${m[2]}/${m[3]}` });
-            });
-        } else if (points > 0) {
-            // Link antigo (sem histórico): mostra o saldo como 1 selo
-            historyEntries.push({ val: `+${points}`, date: updateFormatted.slice(0, 5) });
-        }
-        if (isExpired) historyEntries = [];
-        historyEntries = historyEntries.slice(-10); // mostra os 10 atendimentos mais recentes
-        if (isExpired && !isReferral) {
-            document.getElementById('recentActivityText').innerText = `Seus pontos venceram em ${expiryFormatted}. Agende um atendimento para começar um novo cartão 💅`;
-        }
-        // "Você acumulou pontos em..." usa a data do último atendimento, não a do cadastro
-        if (!isReferral && urlParams.has('h') && historyEntries.length > 0) {
-            document.getElementById('recentActivityText').innerText = `Você acumulou pontos em ${historyEntries[historyEntries.length - 1].date} 🎉`;
-        }
-
-        for (let i = 1; i <= 10; i++) {
-            const stamp = document.createElement('div');
+        // Simulação de carregamento do cliente logado no dispositivo ou via URL
+        function loadClientCard() {
+            let saved = localStorage.getItem('mary_clients_list');
+            let clients = saved ? JSON.parse(saved) : [];
             
-            if (i <= historyEntries.length) {
-                stamp.className = 'stamp filled';
-                stamp.innerHTML = `
-                    <div class="stamp-value">${historyEntries[i-1].val}</div>
-                    <div class="stamp-label">❤️ Atend.</div>
-                    <div class="stamp-date">${historyEntries[i-1].date}</div>
-                `;
-            } else {
-                stamp.className = 'stamp empty';
-                stamp.innerHTML = i;
+            // Pega o primeiro cliente como exemplo padrão de visualização do cartão
+            let client = clients.length > 0 ? clients[0] : { name: "Cliente Exemplo", id: "EB-1001", points: 3, lastUpdate: "2026-11-01", days: 60 };
+
+            document.getElementById('clientName').innerText = client.name;
+            document.getElementById('clientId').innerText = client.id;
+            document.getElementById('clientPoints').innerText = client.points;
+
+            // Renderiza os carimbos (meta de 10 pontos)
+            const grid = document.getElementById('stampsGrid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= 10; i++) {
+                const slot = document.createElement('div');
+                slot.className = `stamp-slot ${i <= client.points ? 'filled' : ''}`;
+                slot.innerText = i <= client.points ? '⭐' : i;
+                grid.appendChild(slot);
             }
-            grid.appendChild(stamp);
+
+            // Calcula a validade baseada no início fixo do ciclo
+            let updateDate = new Date((client.lastUpdate || '2026-11-01') + 'T00:00:00');
+            let expiryDate = new Date(updateDate.getTime());
+            expiryDate.setDate(expiryDate.getDate() + (client.days || 60));
+
+            document.getElementById('cardValidity').innerText = `📅 Válido até: ${expiryDate.toLocaleDateString('pt-BR')}`;
         }
 
-        function shareReferral() {
-            const currentUrl = window.location.href.split('?')[0];
-            const whoRefers = clientId || refId;
-            const refLink = whoRefers ? `${currentUrl}?ref=${encodeURIComponent(whoRefers)}` : currentUrl;
-            const shareText = encodeURIComponent(`Olá! Conheça o Designer Estilo Mary e faça seu Cartão Fidelidade digital! Use meu link de indicação para começar: ${refLink}`);
-            
-            const waShareUrl = `https://api.whatsapp.com/send?text=${shareText}`;
-            window.open(waShareUrl, '_blank');
-        }
+        loadClientCard();
     </script>
 </body>
 </html>
