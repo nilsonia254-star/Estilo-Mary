@@ -1,29 +1,217 @@
-Por favor, preciso que você reescreva o código completo do meu arquivo index.html para o Cartão Fidelidade Digital do Designer Estilo Mary, deixando-o exatamente idêntico ao layout visual e funcional da imagem de referência que enviei. 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cartão Fidelidade Digital - Designer Estilo Mary</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { background-color: #080808; color: #FFFFFF; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 12px; }
 
-Siga rigorosamente estas especificações técnicas e visuais:
+        .card-container { width: 100%; max-width: 420px; background: #12141c; border-radius: 20px; padding: 20px; border: 2px solid #D4AF37; box-shadow: 0 10px 30px rgba(212, 175, 55, 0.2); text-align: center; }
 
-1. Visual Geral: Fundo preto obsidiano (#080808 / #12141c) com bordas finas douradas elegantes (#D4AF37).
-2. Cabeçalho: 
-   - Título com símbolos dourados: ✨ Designer Estilo Mary ✨
-   - Subtítulo: CARTÃO FIDELIDADE DIGITAL
-3. Bloco de Boas-Vindas: 
-   - Saudação dinâmica via parâmetros da URL (nome): Olá, [Nome] ! 👏
-   - Subtítulo de evento: Você ganhou pontos em [Data] 💖
-4. Caixa de Pontuação Principal:
-   - Um retângulo grande com fundo degradê amarelo/dourado vibrante contendo o total de pontos (ex: 5 pontos 💖), com texto escuro e forte.
-   - Linha de datas logo abaixo: Atualizado em [Data] - Válido até [Data] (calculado dinamicamente com base nos parâmetros pontos, dias e nome passados na URL).
-5. Grade de 10 Quadrados (Regra Individual de Preenchimento):
-   - 10 slots organizados em grade.
-   - Para cada quadrado menor ou igual ao número de pontos da cliente (pontos da URL): deve exibir fundo escuro com borda rosa/magenta destacada, contendo o selo +5, a linha ♥ Atend. e a data do atendimento.
-   - Para os quadrados vazios (acima dos pontos da cliente): devem exibir apenas o número sequencial centralizado (2, 3, 4... até 10) em cor cinza estilizada.
-6. Faixa de Total Acumulado:
-   - Caixa estilo painel com fundo escuro e borda dourada, exibindo TOTAL ACUMULADO à esquerda e [X] PTS em destaque amarelo à direita.
-7. Blocos Informativos Fixos:
-   - Caixa de Endereço do Estúdio: Rua Nova Aliança, nº 28 (Travessia da Agostiniana Chantal) - Jd. Nova Conquista.
-   - Caixa de Regra do Cartão: Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias).
-8. Botões de Ação na Base:
-   - Botão Verde brilhante: 💬 Agende: WhatsApp (11) 96706-6029 (link direto para o WhatsApp de agendamento).
-   - Botão Azul Claro: 🎁 Indique uma amiga e ganhe +5 pts (com função de compartilhamento ou cópia do link via navigator.share / prompt).
-   - Texto de rodapé inferior: Toque nos botões acima para agendar ou indicar.
+        /* Cabeçalho */
+        .brand-title { color: #FFD700; font-size: 20px; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px; }
+        .brand-subtitle { font-size: 11px; color: #a0a6b8; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; font-weight: 600; }
 
-O código deve ler corretamente os parâmetros da URL (nome, id, pontos, dias) para personalizar o cartão instantaneamente ao abrir. Me entregue o código completo, pronto e limpo em arquivo único HTML.
+        /* Boas-vindas + pontuação */
+        .welcome-box { background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); border: 1px solid #D4AF37; border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+        .welcome-box h2 { font-size: 16px; color: #FFD700; margin-bottom: 6px; }
+        .welcome-box p { font-size: 12px; color: #ffffff; line-height: 1.4; }
+        .points-display { font-size: 22px; font-weight: 800; color: #0A0A0A; margin: 10px 0 6px 0; background: linear-gradient(135deg, #FFE58F, #D4AF37); padding: 10px; border-radius: 12px; border: 1px solid #FFD700; box-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        .dates-info { font-size: 10px; color: #00d2d3; margin-top: 6px; font-weight: 600; line-height: 1.4; }
+        .dates-info.expired { color: #ff6b6b; }
+
+        /* Grade de 10 quadrados */
+        .stamps-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+        .stamp { aspect-ratio: 1; background: #1a1d26; border: 2px solid #2a2e3d; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: #a0a6b8; padding: 4px; text-align: center; }
+        .stamp.empty { font-size: 14px; }
+        .stamp.filled { background: #12141c; border-color: #C71585; color: #ffffff; box-shadow: 0 0 8px rgba(199, 21, 133, 0.4); }
+        .stamp-value { font-size: 13px; font-weight: 800; color: #FF69B4; }
+        .stamp-label { font-size: 8px; color: #ffffff; margin-top: 1px; line-height: 1; }
+        .stamp-date { font-size: 8px; color: #00d2d3; margin-top: 2px; font-weight: 600; }
+
+        /* Total acumulado */
+        .total-box { background: linear-gradient(135deg, #FFE58F, #D4AF37); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; color: #0A0A0A; font-weight: 800; }
+        .total-box span { font-size: 13px; text-transform: uppercase; }
+        .total-box strong { font-size: 18px; }
+
+        /* Informações fixas */
+        .info-card { background: #1a1d26; border: 1px solid #232733; border-radius: 12px; padding: 12px; margin-bottom: 16px; text-align: left; font-size: 11px; color: #a0a6b8; line-height: 1.5; }
+        .info-card strong { color: #ffffff; display: block; margin-bottom: 2px; }
+
+        /* Botões */
+        .action-btn { width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; font-size: 13px; cursor: pointer; border: none; text-decoration: none; display: block; margin-bottom: 10px; text-align: center; transition: opacity 0.2s; }
+        .action-btn:hover { opacity: 0.9; }
+        .btn-whatsapp { background: #00C853; color: #ffffff; }
+        .btn-referral { background: linear-gradient(135deg, #00A8E8, #007EA7); color: #ffffff; }
+        .footer-tip { font-size: 10px; color: #a0a6b8; margin-top: 8px; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <div class="brand-title">✨ Designer Estilo Mary ✨</div>
+        <div class="brand-subtitle">Cartão Fidelidade Digital</div>
+
+        <div class="welcome-box">
+            <h2 id="clientGreeting">Olá, Cliente! 👋</h2>
+            <p id="recentActivityText">Acumule pontos a cada atendimento 💅</p>
+            <div class="points-display" id="pointsDisplay">0 pontos 💖</div>
+            <div class="dates-info" id="datesDisplay">Atualizado em --/--/---- - Válido até --/--/----</div>
+        </div>
+
+        <div class="stamps-grid" id="stampsGrid"></div>
+
+        <div class="total-box">
+            <span>Total Acumulado</span>
+            <strong id="totalPointsText">0 PTS</strong>
+        </div>
+
+        <div class="info-card">
+            <strong>📍 Endereço do Estúdio:</strong>
+            Rua Nova Aliança, nº 2B (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
+            <br><br>
+            <strong>🎁 Regra do Cartão:</strong>
+            Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: <span id="validityDaysText">60</span> dias)
+        </div>
+
+        <a id="whatsappBtn" href="#" target="_blank" rel="noopener" class="action-btn btn-whatsapp">
+            📅 Agende: WhatsApp (11) 96706-6029
+        </a>
+
+        <button type="button" onclick="shareReferral()" class="action-btn btn-referral">
+            🎁 Indique uma amiga e ganhe +5 pts
+        </button>
+
+        <div class="footer-tip">Toque nos botões acima para agendar ou indicar</div>
+    </div>
+
+    <script>
+        // ================= CONFIGURAÇÃO =================
+        const STUDIO_PHONE = "5511967066029";   // WhatsApp de agendamento
+        const DEFAULT_VALIDITY_DAYS = 60;
+
+        // ================= FUNÇÕES DE DATA =================
+        const pad = (n) => String(n).padStart(2, '0');
+        const formatFull = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;   // 02/11/2026
+        const formatShort = (d) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;                     // 02/11
+        const startOfToday = () => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); };
+
+        // Lê "AAAA-MM-DD" como data local; devolve null se estiver faltando ou inválida
+        function parseIsoDate(str) {
+            const s = String(str || '').slice(0, 10);
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
+            const d = new Date(s + 'T00:00:00');
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        // ================= PARÂMETROS DO LINK =================
+        // nome, id, pontos, dias  -> dados da cliente
+        // data  -> início do ciclo (enviado pelo painel). É dela que os 60 dias corridos são contados.
+        // h     -> selos por atendimento, no formato pontos.DDMM (ex: 5.0211_1.1111)
+        // ref   -> link de indicação (a amiga ainda não tem cartão)
+        const params = new URLSearchParams(window.location.search);
+        const clientName = (params.get('nome') || '').trim() || 'Cliente';
+        const clientId = (params.get('id') || '').trim();
+        const refId = (params.get('ref') || '').trim();
+        const isReferral = !clientId && refId !== '';
+        const validityDays = parseInt(params.get('dias')) || DEFAULT_VALIDITY_DAYS;
+        let points = Math.max(0, parseInt(params.get('pontos')) || 0);
+
+        // ================= PRAZO: 60 DIAS CORRIDOS A PARTIR DA DATA DO PAINEL =================
+        const startDate = parseIsoDate(params.get('data')) || startOfToday();
+        const expiryDate = new Date(startDate.getTime());
+        expiryDate.setDate(expiryDate.getDate() + validityDays);
+        const daysLeft = Math.round((expiryDate - startOfToday()) / 86400000);
+        const isExpired = daysLeft < 0;
+        if (isExpired) points = 0;   // prazo vencido sem resgate: os pontos não valem mais
+
+        // ================= SELOS (cada quadrado = 1 atendimento) =================
+        let stamps = [];
+        if (!isExpired) {
+            if (params.has('h')) {
+                params.get('h').split('_').forEach(part => {
+                    const m = /^(\d+)\.(\d{2})(\d{2})$/.exec(part);
+                    if (m) stamps.push({ value: `+${m[1]}`, date: `${m[2]}/${m[3]}` });
+                });
+            } else if (points > 0) {
+                // Link sem histórico: mostra o saldo como um único selo
+                stamps.push({ value: `+${points}`, date: formatShort(startDate) });
+            }
+        }
+        stamps = stamps.slice(-10);   // os 10 atendimentos mais recentes
+
+        // ================= PREENCHE A TELA =================
+        const $ = (id) => document.getElementById(id);
+
+        $('clientGreeting').innerText = `Olá, ${clientName}! 👋`;
+        $('pointsDisplay').innerText = `${points} ponto${points === 1 ? '' : 's'} 💖`;
+        $('totalPointsText').innerText = `${points} PTS`;
+        $('validityDaysText').innerText = validityDays;
+
+        let daysText = `⏳ ${daysLeft} dias restantes`;
+        if (isExpired) daysText = `⚠️ Vencido há ${Math.abs(daysLeft)} dia${Math.abs(daysLeft) === 1 ? '' : 's'}`;
+        else if (daysLeft === 0) daysText = '⚠️ Vence hoje!';
+        $('datesDisplay').innerText = `Atualizado em ${formatFull(startDate)} - Válido até ${formatFull(expiryDate)}\n(${daysText})`;
+        if (isExpired) $('datesDisplay').classList.add('expired');
+
+        if (isExpired) {
+            $('recentActivityText').innerText = `Seus pontos venceram em ${formatFull(expiryDate)}. Agende um atendimento para começar um novo cartão 💅`;
+        } else if (stamps.length > 0) {
+            $('recentActivityText').innerText = `Você ganhou pontos em ${stamps[stamps.length - 1].date} 🎉`;
+        }
+
+        const grid = $('stampsGrid');
+        for (let i = 1; i <= 10; i++) {
+            const stamp = document.createElement('div');
+            const entry = stamps[i - 1];
+            if (entry) {
+                stamp.className = 'stamp filled';
+                stamp.innerHTML = `
+                    <div class="stamp-value">${entry.value}</div>
+                    <div class="stamp-label">❤️ Atend.</div>
+                    <div class="stamp-date">${entry.date}</div>
+                `;
+            } else {
+                stamp.className = 'stamp empty';
+                stamp.innerText = i;
+            }
+            grid.appendChild(stamp);
+        }
+
+        // ================= BOTÃO DE AGENDAMENTO =================
+        let scheduleText = 'Olá Mariana! Gostaria de agendar meu horário no estúdio.';
+        if (clientId) {
+            scheduleText = `Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`;
+        } else if (isReferral) {
+            scheduleText = `Olá Mariana! Fui indicada pela cliente do cartão ${refId} e gostaria de agendar meu primeiro horário no estúdio.`;
+        }
+        $('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${STUDIO_PHONE}&text=${encodeURIComponent(scheduleText)}`;
+
+        // ================= TELA DE QUEM CHEGOU POR INDICAÇÃO =================
+        if (isReferral) {
+            $('clientGreeting').innerText = 'Olá! Você foi indicada 💖';
+            $('recentActivityText').innerText = 'Agende seu primeiro atendimento e ganhe seu Cartão Fidelidade digital 💅';
+            $('datesDisplay').innerText = `Indicação da cliente ${refId}`;
+        }
+
+        // ================= BOTÃO DE INDICAÇÃO =================
+        function shareReferral() {
+            const baseUrl = window.location.href.split(/[?#]/)[0];
+            const whoRefers = clientId || refId;
+            const refLink = whoRefers ? `${baseUrl}?ref=${encodeURIComponent(whoRefers)}` : baseUrl;
+            const text = 'Olá! Conheça o Designer Estilo Mary e faça seu Cartão Fidelidade digital! Use meu link de indicação para começar:';
+
+            // Celular: abre o compartilhamento do aparelho. Se não existir (ou a pessoa cancelar), abre o WhatsApp.
+            const openWhatsApp = () => window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + refLink)}`, '_blank');
+            if (navigator.share) {
+                navigator.share({ title: 'Designer Estilo Mary', text: text, url: refLink })
+                    .catch(err => { if (!err || err.name !== 'AbortError') openWhatsApp(); });
+            } else {
+                openWhatsApp();
+            }
+        }
+    </script>
+</body>
+</html>
