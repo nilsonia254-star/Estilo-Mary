@@ -50,7 +50,7 @@
             <h2 id="clientGreeting">Olá, Cliente! 👋</h2>
             <p id="recentActivityText">Você acumulou pontos em atendimento recente 💅</p>
             <div class="points-display" id="pointsDisplay">0 pontos 💖</div>
-            <div class="dates-info" id="datesDisplay">Atualizado em: --/--/---- - Válido até: --/--/----</div>
+            <div class="dates-info" id="datesDisplay">Cadastro em: --/--/---- - Válido até: --/--/----</div>
         </div>
 
         <div class="stamps-grid" id="stampsGrid"></div>
@@ -106,13 +106,20 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const clientName = urlParams.get('nome') || 'Cliente';
-        const clientId = urlParams.get('id') || 'EB-1001';
-        const points = parseInt(urlParams.get('pontos')) || 0;
+        const clientId = (urlParams.get('id') || '').trim();
+        // Link de indicação: ?ref=EB-xxxx (a amiga ainda não tem cartão)
+        const refId = (urlParams.get('ref') || '').trim();
+        const isReferral = !clientId && refId !== '';
+        let points = parseInt(urlParams.get('pontos')) || 0;
         const validityDays = parseInt(urlParams.get('dias')) || 60;
         
         // Pega a data fixa enviada pelo admin. Se não vier, usa a de hoje travada.
         const dateParam = urlParams.get('data');
-        const updateDateStr = dateParam ? dateParam.slice(0, 10) : getTodayIsoString();
+        let updateDateStr = dateParam ? dateParam.slice(0, 10) : getTodayIsoString();
+        // Data faltando ou inválida no link: usa hoje (evita "NaN/NaN/NaN" no cartão)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(updateDateStr) || isNaN(new Date(updateDateStr + 'T00:00:00').getTime())) {
+            updateDateStr = getTodayIsoString();
+        }
 
         // Converte para objetos Date sem problemas de fuso horário
         const updateDate = new Date(updateDateStr + 'T00:00:00');
@@ -128,6 +135,10 @@
         
         const diffTime = expiryDay - today;
         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+        // Prazo vencido: os pontos não valem mais (mesmo em link antigo)
+        const isExpired = diffDays < 0;
+        if (isExpired) points = 0;
 
         document.getElementById('clientGreeting').innerText = `Olá, ${clientName}! 👋`;
         document.getElementById('pointsDisplay').innerText = `${points} pontos 💖`;
@@ -145,27 +156,48 @@
         if (diffDays < 0) daysTextBadge = `⚠️ Vencido há ${Math.abs(diffDays)} dias`;
         else if (diffDays === 0) daysTextBadge = `⚠️ Vence hoje!`;
 
-        document.getElementById('datesDisplay').innerHTML = `Atualizado em ${updateFormatted} - Válido até ${expiryFormatted}<br>(${daysTextBadge})`;
+        document.getElementById('datesDisplay').innerHTML = `Cadastro em ${updateFormatted} - Válido até ${expiryFormatted}<br>(${daysTextBadge})`;
 
         if (points > 0) {
             document.getElementById('recentActivityText').innerText = `Você acumulou pontos em ${updateFormatted} 🎉`;
         }
 
         const correctPhone = "5511967066029";
-        const scheduleMsg = encodeURIComponent(`Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`);
-        document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${scheduleMsg}`;
+        let scheduleText = `Olá Mariana! Gostaria de agendar meu horário no estúdio.`;
+        if (clientId) {
+            scheduleText = `Olá Mariana! Vim pelo meu Cartão Fidelidade (${clientId}) e gostaria de agendar meu horário no estúdio.`;
+        } else if (isReferral) {
+            scheduleText = `Olá Mariana! Fui indicada pela cliente do cartão ${refId} e gostaria de agendar meu primeiro horário no estúdio.`;
+        }
+        document.getElementById('whatsappBtn').href = `https://api.whatsapp.com/send?phone=${correctPhone}&text=${encodeURIComponent(scheduleText)}`;
+
+        // Tela para quem chegou por indicação (ainda sem cartão)
+        if (isReferral) {
+            document.getElementById('clientGreeting').innerText = 'Olá! Você foi indicada 💖';
+            document.getElementById('recentActivityText').innerText = 'Agende seu primeiro atendimento e ganhe seu Cartão Fidelidade digital 💅';
+            document.getElementById('datesDisplay').innerText = `Indicação da cliente ${refId}`;
+        }
 
         const grid = document.getElementById('stampsGrid');
+        // Cada quadrado = 1 atendimento. O painel envia os selos em "h" no formato pontos.DDMM (ex: 5.0211_3.0911)
         let historyEntries = [];
-        let ptsLeft = points;
-
-        while (ptsLeft > 0) {
-            let chunk = ptsLeft >= 5 ? 5 : (ptsLeft >= 3 ? 3 : ptsLeft);
-            historyEntries.push({
-                val: `+${chunk}`,
-                date: updateFormatted.slice(0, 5) // Ex: "09/11"
+        if (urlParams.has('h')) {
+            urlParams.get('h').split('_').forEach(part => {
+                const m = /^(\d+)\.(\d{2})(\d{2})$/.exec(part);
+                if (m) historyEntries.push({ val: `+${m[1]}`, date: `${m[2]}/${m[3]}` });
             });
-            ptsLeft -= chunk;
+        } else if (points > 0) {
+            // Link antigo (sem histórico): mostra o saldo como 1 selo
+            historyEntries.push({ val: `+${points}`, date: updateFormatted.slice(0, 5) });
+        }
+        if (isExpired) historyEntries = [];
+        historyEntries = historyEntries.slice(-10); // mostra os 10 atendimentos mais recentes
+        if (isExpired && !isReferral) {
+            document.getElementById('recentActivityText').innerText = `Seus pontos venceram em ${expiryFormatted}. Agende um atendimento para começar um novo cartão 💅`;
+        }
+        // "Você acumulou pontos em..." usa a data do último atendimento, não a do cadastro
+        if (!isReferral && urlParams.has('h') && historyEntries.length > 0) {
+            document.getElementById('recentActivityText').innerText = `Você acumulou pontos em ${historyEntries[historyEntries.length - 1].date} 🎉`;
         }
 
         for (let i = 1; i <= 10; i++) {
@@ -187,7 +219,8 @@
 
         function shareReferral() {
             const currentUrl = window.location.href.split('?')[0];
-            const refLink = `${currentUrl}?ref=${clientId}`;
+            const whoRefers = clientId || refId;
+            const refLink = whoRefers ? `${currentUrl}?ref=${encodeURIComponent(whoRefers)}` : currentUrl;
             const shareText = encodeURIComponent(`Olá! Conheça o Designer Estilo Mary e faça seu Cartão Fidelidade digital! Use meu link de indicação para começar: ${refLink}`);
             
             const waShareUrl = `https://api.whatsapp.com/send?text=${shareText}`;
