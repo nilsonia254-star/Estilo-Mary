@@ -1,26 +1,692 @@
-function sendWhatsApp() {
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel da Gestão - Designer Estilo Mary</title>
+    <!-- Bibliotecas para Gráficos e Leitura/Escrita de Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+        body { 
+            background-color: #0A0A0A; 
+            color: #FFFFFF; 
+            padding: 12px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .dashboard-container { 
+            width: 100%; 
+            max-width: 950px; 
+            background: #14161d; 
+            border-radius: 16px; 
+            padding: 18px; 
+            border: 1px solid #232733; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            margin: 0 auto;
+        }
+        .header-title { 
+            color: #FFD700; 
+            font-size: 20px; 
+            margin-bottom: 16px; 
+            font-weight: 700; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            text-align: center;
+        }
+        .counter-badge { 
+            background: #1a1d26; 
+            border: 1px solid #FFD700; 
+            color: #FFD700; 
+            font-size: 12px; 
+            padding: 5px 10px; 
+            border-radius: 20px; 
+            margin: 0 auto;
+        }
+        
+        /* Caixa de Resumo em Destaque Centralizada na Frente */
+        .quick-preview-box { 
+            background: linear-gradient(135deg, #1a1d26 0%, #101217 100%); 
+            border: 2px solid #D4AF37; 
+            border-radius: 14px; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15); 
+            text-align: left;
+        }
+        .preview-title { 
+            color: #FFD700; 
+            font-size: 12px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin-bottom: 6px; 
+            letter-spacing: 1px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .preview-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+        .preview-name { font-size: 15px; font-weight: bold; color: #ffffff; }
+        .preview-details { font-size: 12px; color: #a0a6b8; display: flex; gap: 12px; flex-wrap: wrap; }
+        .preview-highlight { color: #FFD700; font-weight: bold; }
+        .preview-dates { font-size: 11px; color: #00d2d3; margin-top: 6px; font-weight: 600; border-top: 1px solid #232733; padding-top: 5px; }
+        .preview-finance { margin-top: 6px; font-size: 12px; color: #FFD700; font-weight: bold; border-top: 1px solid #232733; padding-top: 5px; }
+
+        /* Estilo do Gráfico centralizado */
+        .chart-box { 
+            background: #1a1d26; 
+            border: 1px solid #2a2e3d; 
+            border-radius: 12px; 
+            padding: 14px; 
+            margin-top: 20px; 
+            margin-bottom: 20px; 
+            height: 260px; 
+            position: relative; 
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .chart-toggle-btn { background: #101217; border: 1px solid #2a2e3d; color: #a0a6b8; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        .chart-toggle-btn.active { background: #D4AF37; color: #0A0A0A; font-weight: bold; border-color: #D4AF37; }
+        
+        .grid-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        @media (max-width: 768px) { .grid-layout { grid-template-columns: 1fr; } }
+        
+        .section-title { color: #FFD700; font-size: 14px; font-weight: bold; margin-bottom: 10px; }
+        label { display: block; font-size: 11px; color: #a0a6b8; margin-bottom: 3px; margin-top: 6px; }
+        input, select, textarea { width: 100%; padding: 9px 11px; border-radius: 8px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 13px; outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: #FFD700; }
+        
+        .search-input-box { border: 2px solid #00A8E8; background: #101217; font-weight: bold; color: #00A8E8; }
+        
+        .btn-group { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+        .btn { border: none; border-radius: 8px; padding: 10px; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; text-decoration: none; display: inline-block; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-gold { background: linear-gradient(135deg, #FFE58F, #D4AF37); color: #0A0A0A; flex: 1; min-width: 100px; }
+        .btn-cyan { background: #00d2d3; color: #101217; flex: 1; min-width: 70px; }
+        .btn-coral { background: #ff6b6b; color: #ffffff; flex: 1; min-width: 70px; }
+        .btn-green { background: #00C853; color: #ffffff; width: 100%; }
+        .btn-excel { background: #107c41; color: #ffffff; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-import { background: #8e44ad; color: #ffffff; padding: 8px 12px; font-size: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        .btn-red { background: #ee5253; color: #ffffff; flex: 1; }
+        .btn-blue { background: #00A8E8; color: #ffffff; width: 100%; margin-top: 10px; padding: 12px; font-size: 13px; }
+        
+        .table-section { margin-top: 20px; border-top: 1px solid #232733; padding-top: 16px; overflow-x: auto; width: 100%; }
+        .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 750px; }
+        th, td { padding: 9px; text-align: left; border-bottom: 1px solid #232733; }
+        th { color: #a0a6b8; font-weight: 600; }
+        .btn-notes { background: #f39c12; color: #ffffff; padding: 4px 8px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
+        .badge-dates { background: #00d2d322; color: #00d2d3; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #00d2d344; font-size: 10px; line-height: 1.4; display: inline-block; }
+        .badge-expired { background: #ee525322; color: #ff6b6b; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header-title">
+            <span>✨ Painel da Gestão - Designer Estilo Mary</span>
+            <div class="counter-badge">Total de Clientes: <span id="totalClientsCount">1</span></div>
+        </div>
+
+        <!-- PAINEL DE RESUMO EM DESTAQUE NA FRENTE -->
+        <div class="quick-preview-box">
+            <div class="preview-title">
+                <span>⭐ Cliente Selecionada em Destaque</span>
+                <span id="previewId" style="color: #a0a6b8;">EB-1001</span>
+            </div>
+            <div class="preview-content">
+                <div>
+                    <div class="preview-name" id="previewName">Carregando...</div>
+                    <div style="font-size: 11px; color: #00d2d3; margin-top: 2px;" id="previewPhone">-</div>
+                </div>
+                <div class="preview-details">
+                    <div>Pontos: <span class="preview-highlight" id="previewPoints">0 pts</span></div>
+                </div>
+            </div>
+            <!-- Informações exatas de Datas e Dias Restantes -->
+            <div class="preview-dates" id="previewDatesText">
+                📅 Cadastro em: --/--/---- | Válido até: --/--/---- (⏳ -- dias restantes)
+            </div>
+            <!-- Informação Financeira restaurada e bem visível -->
+            <div class="preview-finance" id="previewFinance">
+                💰 Financeiro: -
+            </div>
+        </div>
+
+        <div class="grid-layout">
+            <div>
+                <div class="section-title">Gerenciar Cliente</div>
+                button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
+                
+                <!-- CAMPO DE BUSCA RÁPIDA POR NOME -->
+                <label for="searchClientInput" style="color: #00A8E8; font-weight: bold;">🔍 Digite o Nome para Achar Rápido:</label>
+                <input type="text" id="searchClientInput" class="search-input-box" placeholder="Ex: Mariana, Cláudia..." oninput="filterClientByName()">
+
+                <label for="selectClient" style="margin-top: 8px;">Ou Selecionar na Lista:</label>
+                <select id="selectClient" onchange="loadClientFromSelect()"><option value="">-- Selecione uma cliente --</option></select>
+                
+                <label for="clientId">ID do Cliente:</label>
+                <input type="text" id="clientId" value="EB-1001" readonly>
+                
+                <label for="clientName">Nome Completo da Cliente:</label>
+                <input type="text" id="clientName" placeholder="Nome da cliente">
+                
+                <label for="clientPhone">WhatsApp com DDD:</label>
+                <input type="text" id="clientPhone" placeholder="11987654321">
+                
+                <label for="referredBy">Indicada por (Cliente / ID ou Direto):</label>
+                <input type="text" id="referredBy" placeholder="Ex: [EB-1001] Mariana ou Direto">
+                
+                <label for="clientStartDate" style="color: #00d2d3; font-weight: bold;">📅 Início do Ciclo (cadastro ou último resgate):</label>
+                <input type="date" id="clientStartDate">
+                
+                <label for="clientFinanceNotes" style="color: #FFD700; font-weight: bold;">💰 Anotações Financeiras (Ex: Pagou Adiantado / Devendo):</label>
+                <textarea id="clientFinanceNotes" rows="2" placeholder="Ex: Pagou adiantado via Pix / Deve R$ 50,00..."></textarea>
+                
+                <label for="clientNotes">📝 Observações Gerais / Atendimento:</label>
+                <textarea id="clientNotes" rows="2" placeholder="Ex: Prefere sobrancelha mais marcada..."></textarea>
+                
+                <div class="btn-group" style="margin-top: 12px;">
+                    <button class="btn btn-green" onclick="saveClient()">💾 Salvar / Atualizar</button>
+                    <button class="btn btn-red" onclick="deleteClient()">🗑️ Eliminar</button>
+                </div>
+            </div>
+            
+            <div>
+                <div class="section-title">Lançar Pontos & Validade do Cartão</div>
+                <label>Adicionar Pontos:</label>
+                <div class="btn-group">
+                    <button class="btn btn-gold" onclick="addPoints(1)">+ 1 Ponto</button>
+                    <button class="btn btn-gold" onclick="addPoints(3)">+ 3 Pontos</button>
+                    <button class="btn btn-gold" onclick="addPoints(5)">+ 5 Pontos</button>
+                </div>
+                
+                <label style="margin-top: 12px;">Ajustar Dias de Validade do Cartão:</label>
+                <div class="btn-group">
+                    <button class="btn btn-cyan" onclick="adjustDays(1)">+ 1 Dia</button>
+                    <button class="btn btn-cyan" onclick="adjustDays(10)">+ 10 Dias</button>
+                    <button class="btn btn-coral" onclick="adjustDays(-1)">- 1 Dia</button>
+                    <button class="btn btn-coral" onclick="adjustDays(-10)">- 10 Dias</button>
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: center; margin-top: 6px;">
+                    <input type="number" id="validityDays" value="60" style="text-align: center; font-weight: bold; font-size: 14px;">
+                    <button class="btn btn-gold" style="width: auto; padding: 10px;" onclick="saveValidityDays()">Fixar</button>
+                </div>
+                
+                <label style="margin-top: 12px; color: #ff6b6b;">Correção de Pontos / Resgate:</label>
+                <div class="btn-group">
+                    <button class="btn btn-coral" onclick="addPoints(-1)">- 1 Ponto</button>
+                    <button class="btn btn-coral" onclick="resetPoints()">🎁 Resgatou: Zerar e Novo Prazo</button>
+                </div>
+                
+                <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
+                
+                <!-- GRÁFICO POSICIONADO ABAIXO DO BOTÃO AZUL -->
+                <div class="chart-box">
+                    <div class="chart-header">
+                        <span style="font-size: 12px; font-weight: bold; color: #FFD700;">📊 Atendimentos por Período</span>
+                        <div>
+                            <button id="btnMonthly" class="chart-toggle-btn active" onclick="switchChart('monthly')">Mensal</button>
+                            <button id="btnYearly" class="chart-toggle-btn" onclick="switchChart('yearly')">Anual</button>
+                        </div>
+                    </div>
+                    <div style="height: 190px;"><canvas id="attendanceChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-section">
+            <div class="table-header-row">
+                <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <input type="file" id="excelFile" accept=".xlsx, .xls, .csv" style="display:none" onchange="importFromExcel(event)">
+                    <button class="btn btn-import" onclick="document.getElementById('excelFile').click()">📂 Importar XLSX</button>
+                    <button class="btn btn-excel" onclick="exportToExcelXLSX()">📊 Baixar Excel (.XLSX)</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>ID</th><th>Nome</th><th>WhatsApp</th><th>Indicada Por</th><th>Pontos</th><th>Validade e Dias Restantes</th><th>Financeiro</th><th>Ação</th></tr>
+                </thead>
+                <tbody id="clientTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let savedClients = localStorage.getItem('mary_clients_list');
+        let clientsList = savedClients ? JSON.parse(savedClients) : [
+            { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-11-09", finance: "Pago adiantado", notes: "Cliente VIP" }
+        ];
+
+        function parseLocalDate(str) {
+            const s = String(str || '').slice(0, 10);
+            return /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T00:00:00') : new Date(NaN);
+        }
+
+        function safeIsoDate(str) {
+            return isNaN(parseLocalDate(str).getTime()) ? getTodayIsoString() : String(str).slice(0, 10);
+        }
+
+        function nextClientId() {
+            let max = 1000;
+            clientsList.forEach(c => {
+                const m = /^EB-(\d+)$/.exec(c.id || '');
+                if (m) max = Math.max(max, parseInt(m[1]));
+            });
+            return 'EB-' + (max + 1);
+        }
+
+        function normalizeClients() {
+            const seen = new Set();
+            clientsList.forEach(c => {
+                if (!c.id || seen.has(c.id)) c.id = nextClientId();
+                seen.add(c.id);
+                c.points = Math.max(0, parseInt(c.points) || 0);
+                c.lastUpdate = safeIsoDate(c.lastUpdate);
+                if (!Array.isArray(c.history)) c.history = c.points > 0 ? [{ p: c.points, d: c.lastUpdate }] : [];
+                if (!Array.isArray(c.visits)) c.visits = c.history.map(h => h.d);
+            });
+        }
+        normalizeClients();
+
+        function persistData() {
+            localStorage.setItem('mary_clients_list', JSON.stringify(clientsList));
+            updateChartData();
+        }
+
+        function formatDateString(dateStr) {
+            if (!dateStr) return "--/--/----";
+            if (dateStr.includes('-') && dateStr.length === 10) {
+                const parts = dateStr.split('-');
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return "--/--/----";
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function getTodayIsoString() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getClientCardDates(client) {
+            let updateDateStr = safeIsoDate(client.lastUpdate);
+            const updateDate = new Date(updateDateStr + 'T00:00:00');
+            let validityDays = parseInt(client.days) || 60;
+            
+            const expiryDate = new Date(updateDate.getTime());
+            expiryDate.setDate(expiryDate.getDate() + validityDays);
+
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const expiryDay = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
+
+            const diffTime = expiryDay - today;
+            const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+            const expDayStr = String(expiryDay.getDate()).padStart(2, '0');
+            const expMonthStr = String(expiryDay.getMonth() + 1).padStart(2, '0');
+            const expYearStr = expiryDay.getFullYear();
+            const expiryFormatted = `${expDayStr}/${expMonthStr}/${expYearStr}`;
+
+            return {
+                updatedFormatted: formatDateString(updateDateStr),
+                expiryFormatted: expiryFormatted,
+                daysLeft: diffDays
+            };
+        }
+
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        const attendanceChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: [], datasets: [{ label: 'Atendimentos', data: [], backgroundColor: 'rgba(212, 175, 55, 0.8)', borderColor: '#D4AF37', borderWidth: 1, borderRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#a0a6b8', font: {size: 9} }, grid: { color: '#232733' } }, y: { ticks: { color: '#a0a6b8', beginAtZero: true, stepSize: 5, font: {size: 9} }, grid: { color: '#232733' } } } }
+        });
+
+        let currentChartMode = 'monthly';
+        function switchChart(mode) {
+            currentChartMode = mode;
+            if(mode === 'monthly') {
+                document.getElementById('btnMonthly').classList.add('active');
+                document.getElementById('btnYearly').classList.remove('active');
+            } else {
+                document.getElementById('btnYearly').classList.add('active');
+                document.getElementById('btnMonthly').classList.remove('active');
+            }
+            updateChartData();
+        }
+
+        function updateChartData() {
+            const monthsNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const allVisits = [];
+            clientsList.forEach(c => (c.visits || []).forEach(v => {
+                const d = parseLocalDate(v);
+                if (!isNaN(d.getTime())) allVisits.push(d);
+            }));
+            if(currentChartMode === 'monthly') {
+                const thisYear = new Date().getFullYear();
+                let counts = new Array(12).fill(0);
+                allVisits.forEach(d => { if (d.getFullYear() === thisYear) counts[d.getMonth()]++; });
+                attendanceChart.data.labels = monthsNames;
+                attendanceChart.data.datasets[0].data = counts;
+            } else {
+                let yearsCount = {};
+                allVisits.forEach(d => { yearsCount[d.getFullYear()] = (yearsCount[d.getFullYear()] || 0) + 1; });
+                let years = Object.keys(yearsCount).sort();
+                if(years.length === 0) years = [new Date().getFullYear()];
+                attendanceChart.data.labels = years;
+                attendanceChart.data.datasets[0].data = years.map(y => yearsCount[y] || 0);
+            }
+            attendanceChart.update();
+        }
+
+        function expireIfNeeded(c) {
+            if (getClientCardDates(c).daysLeft >= 0) return;
+            if (c.points > 0 || (c.history && c.history.length > 0)) {
+                const lost = c.points;
+                c.points = 0;
+                c.history = [];
+                c.notes = ((c.notes || '') + ` [Pontos vencidos em ${getClientCardDates(c).expiryFormatted}: perdeu ${lost} pts]`).trim();
+            }
+        }
+
+        function renderTableAndSelect(filteredList = null) {
+            clientsList.forEach(expireIfNeeded);
+            const tbody = document.getElementById('clientTableBody');
+            const select = document.getElementById('selectClient');
+            tbody.innerHTML = '';
+            select.innerHTML = '<option value="">-- Selecione uma cliente --</option>';
+            
+            const listToUse = filteredList || clientsList;
+            
+            listToUse.forEach((client) => {
+                const index = clientsList.findIndex(c => c.id === client.id);
+                const dates = getClientCardDates(client);
+
+                let daysBadge = `<span class="badge-dates">Cad: ${dates.updatedFormatted}<br>Venc: ${dates.expiryFormatted}<br>⏳ <b>${dates.daysLeft} dias restantes</b></span>`;
+                if (dates.daysLeft < 0) {
+                    daysBadge = `<span class="badge-expired">Vencido (${Math.abs(dates.daysLeft)} dias atrás)</span>`;
+                } else if (dates.daysLeft === 0) {
+                    daysBadge = `<span class="badge-expired">Vence hoje!</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${client.id}</td>
+                    <td>${client.name}</td>
+                    <td>${client.phone || '-'}</td>
+                    <td><span class="badge-ref">${client.ref || 'Direto'}</span></td>
+                    <td style="font-weight: bold; color: #FFD700;">${client.points}p</td>
+                    <td>${daysBadge}</td>
+                    <td style="color: #FFD700; font-size: 11px; font-weight: bold;">${client.finance || '-'}</td>
+                    <td><button class="btn-notes" onclick="selectClientByIndex(${index})">Gerenciar</button></td>
+                `;
+                tbody.appendChild(tr);
+
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.text = `[${client.id}] ${client.name} (${client.points} pts - ${dates.daysLeft}d restantes)`;
+                select.appendChild(opt);
+            });
+            document.getElementById('totalClientsCount').innerText = clientsList.length;
+            persistData();
+        }
+
+        function filterClientByName() {
+            const query = document.getElementById('searchClientInput').value.toLowerCase().trim();
+            if (!query) {
+                renderTableAndSelect();
+                return;
+            }
+            const filtered = clientsList.filter(c => 
+                c.name.toLowerCase().includes(query) || (c.phone && c.phone.includes(query))
+            );
+            renderTableAndSelect(filtered);
+            
+            if (filtered.length > 0) {
+                const realIndex = clientsList.findIndex(c => c.id === filtered[0].id);
+                selectClientByIndex(realIndex);
+            }
+        }
+
+        let currentIndex = 0;
+        function selectClientByIndex(index) {
+            currentIndex = index;
+            const c = clientsList[index];
+            document.getElementById('selectClient').value = index;
+            document.getElementById('clientId').value = c.id;
+            document.getElementById('clientName').value = c.name;
+            document.getElementById('clientPhone').value = c.phone;
+            document.getElementById('referredBy').value = c.ref;
+            document.getElementById('validityDays').value = c.days || 60;
+            document.getElementById('clientStartDate').value = safeIsoDate(c.lastUpdate);
+            document.getElementById('clientFinanceNotes').value = c.finance || '';
+            document.getElementById('clientNotes').value = c.notes || '';
+
+            const dates = getClientCardDates(c);
+            document.getElementById('previewId').innerText = c.id;
+            document.getElementById('previewName').innerText = c.name;
+            document.getElementById('previewPhone').innerText = c.phone ? `📱 ${c.phone}` : 'Sem telefone';
+            document.getElementById('previewPoints').innerText = `${c.points} pts`;
+            
+            let daysBadgeText = `${dates.daysLeft} dias restantes`;
+            if (dates.daysLeft < 0) daysBadgeText = `Vencido há ${Math.abs(dates.daysLeft)} dias`;
+            else if (dates.daysLeft === 0) daysBadgeText = `Vence hoje!`;
+
+            document.getElementById('previewDatesText').innerHTML = `📅 Cadastro em: ${dates.updatedFormatted} | Válido até: ${dates.expiryFormatted} <br>(⏳ <b>${daysBadgeText}</b>)`;
+            document.getElementById('previewFinance').innerHTML = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
+        }
+
+        function loadClientFromSelect() {
+            const index = document.getElementById('selectClient').value;
+            if (index !== "") { selectClientByIndex(parseInt(index)); }
+        }
+
+        function addPoints(pts) {
+            if(clientsList.length > 0) {
+                const c = clientsList[currentIndex];
+                c.name = document.getElementById('clientName').value || c.name;
+                if (pts > 0) {
+                    const today = getTodayIsoString();
+                    if (getClientCardDates(c).daysLeft < 0) {
+                        expireIfNeeded(c);
+                        c.lastUpdate = today;
+                        c.days = 60;
+                    }
+                    c.points = c.points + pts;
+                    c.history.push({ p: pts, d: today });
+                    c.visits.push(today);
+                } else {
+                    let remove = Math.min(c.points, -pts);
+                    c.points -= remove;
+                    while (remove > 0 && c.history.length > 0) {
+                        const last = c.history[c.history.length - 1];
+                        const take = Math.min(last.p, remove);
+                        last.p -= take;
+                        remove -= take;
+                        if (last.p <= 0) { c.history.pop(); c.visits.pop(); }
+                    }
+                }
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
+        }
+
+        function resetPoints() {
+            if(clientsList.length > 0) {
+                if (!confirm("Confirmar o RESGATE desta cliente?\n\nOs pontos voltam para zero e começa um novo prazo de 60 dias a partir de hoje.")) return;
+                clientsList[currentIndex].points = 0;
+                clientsList[currentIndex].history = [];
+                clientsList[currentIndex].lastUpdate = getTodayIsoString();
+                clientsList[currentIndex].days = 60;
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
+        }
+
+        function adjustDays(days) {
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].days = Math.max(1, (parseInt(clientsList[currentIndex].days) || 60) + days);
+                document.getElementById('validityDays').value = clientsList[currentIndex].days;
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+            }
+        }
+
+        function saveValidityDays() {
+            if(clientsList.length > 0) {
+                const val = parseInt(document.getElementById('validityDays').value) || 60;
+                clientsList[currentIndex].days = val;
+                renderTableAndSelect();
+                alert("Validade de " + val + " dias fixada!");
+            }
+        }
+
+        function saveClient() {
+            if(clientsList.length > 0) {
+                clientsList[currentIndex].name = document.getElementById('clientName').value;
+                clientsList[currentIndex].phone = document.getElementById('clientPhone').value;
+                clientsList[currentIndex].ref = document.getElementById('referredBy').value || 'Direto';
+                clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
+                clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
+                
+                const customDate = document.getElementById('clientStartDate').value;
+                if(customDate) {
+                    clientsList[currentIndex].lastUpdate = safeIsoDate(customDate);
+                }
+                
+                renderTableAndSelect();
+                selectClientByIndex(currentIndex);
+                alert("Dados da cliente salvos com sucesso!");
+            }
+        }
+
+        function addNewClientPrompt() {
+            const name = prompt("Nome completo da nova cliente:");
+            if (!name) return;
+            const phone = prompt("WhatsApp com DDD (ex: 11988887777):") || "";
+            const newClient = {
+                id: nextClientId(),
+                name: name.trim(),
+                phone: phone.trim(),
+                ref: "Direto",
+                points: 0,
+                days: 60,
+                lastUpdate: getTodayIsoString(),
+                finance: "",
+                notes: "Cliente cadastrada pelo painel",
+                history: [],
+                visits: []
+            };
+            clientsList.push(newClient);
+            renderTableAndSelect();
+            selectClientByIndex(clientsList.length - 1);
+        }
+
+        function deleteClient() {
+            if (clientsList.length <= 1) {
+                alert("Você não pode apagar a última cliente restante.");
+                return;
+            }
+            if (!confirm(`Deseja realmente excluir a cliente ${clientsList[currentIndex].name}?`)) return;
+            clientsList.splice(currentIndex, 1);
+            currentIndex = 0;
+            renderTableAndSelect();
+            selectClientByIndex(0);
+            alert("Cliente excluída com sucesso.");
+        }
+
+        function sendWhatsApp() {
             const c = clientsList[currentIndex];
             if(!c.phone) {
                 alert("Esta cliente não tem número de WhatsApp cadastrado!");
                 return;
             }
-            
-            // Limpa o número para conter apenas dígitos (remove espaços, traços, parênteses)
-            let telefoneLimpo = c.phone.replace(/\D/g, '');
-            
-            // Se o número não começar com o código do país (55), adiciona o 55 do Brasil
-            if (!telefoneLimpo.startsWith('55')) {
-                telefoneLimpo = '55' + telefoneLimpo;
-            }
-
             const dates = getClientCardDates(c);
-            
-            // Mensagem formatada para a cliente
-            const textoMensagem = `Olá *${c.name}*! ✨ Aqui está o status atualizado do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n⭐ ID: ${c.id}\n🎁 Seus Pontos: ${c.points} pts\n📅 Válido até: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`;
-            
-            const msgCodificada = encodeURIComponent(textoMensagem);
-            
-            // Abre o WhatsApp Web ou o App do celular diretamente com a mensagem pronta
-            const urlWhatsApp = `https://wa.me/${telefoneLimpo}?text=${msgCodificada}`;
-            window.open(urlWhatsApp, '_blank');
+            const msg = encodeURIComponent(`Olá *${c.name}*! ✨ Aqui está o status do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n⭐ ID: ${c.id}\n🎁 Seus Pontos: ${c.points} pts\n📅 Válido até: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`);
+            window.open(`https://wa.me/55${c.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
         }
+
+        function exportToExcelXLSX() {
+            const dataToExport = clientsList.map(c => {
+                const dates = getClientCardDates(c);
+                return {
+                    "ID": c.id,
+                    "Nome": c.name,
+                    "WhatsApp": c.phone,
+                    "Indicada Por": c.ref,
+                    "Pontos": c.points,
+                    "Início Ciclo": dates.updatedFormatted,
+                    "Validade": dates.expiryFormatted,
+                    "Dias Restantes": dates.daysLeft,
+                    "Financeiro": c.finance,
+                    "Observações": c.notes
+                };
+            });
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+            XLSX.writeFile(workbook, "clientes_estilo_mary.xlsx");
+        }
+
+        function importFromExcel(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (json && json.length > 0) {
+                        json.forEach(row => {
+                            clientsList.push({
+                                id: row["ID"] || nextClientId(),
+                                name: row["Nome"] || "Sem Nome",
+                                phone: String(row["WhatsApp"] || ""),
+                                ref: row["Indicada Por"] || "Direto",
+                                points: parseInt(row["Pontos"]) || 0,
+                                days: 60,
+                                lastUpdate: getTodayIsoString(),
+                                finance: row["Financeiro"] || "",
+                                notes: row["Observações"] || "Importado via Excel",
+                                history: [],
+                                visits: []
+                            });
+                        });
+                        normalizeClients();
+                        renderTableAndSelect();
+                        selectClientByIndex(0);
+                        alert("Clientes importados com sucesso!");
+                    }
+                } catch (err) {
+                    alert("Erro ao ler o arquivo Excel. Verifique o formato.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Inicialização do Painel
+        renderTableAndSelect();
+        selectClientByIndex(0);
+    </script>
+</body>
+</html>
