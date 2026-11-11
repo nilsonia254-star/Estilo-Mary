@@ -162,7 +162,7 @@
         <div class="grid-layout">
             <div>
                 <div class="section-title">Gerenciar Cliente</div>
-                <button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
+                button class="btn btn-gold" onclick="addNewClientPrompt()" style="width: 100%; margin-bottom: 10px; font-size: 13px; padding: 11px;">➕ Cadastrar Nova Cliente Aqui</button>
                 
                 <!-- CAMPO DE BUSCA RÁPIDA POR NOME -->
                 <label for="searchClientInput" style="color: #00A8E8; font-weight: bold;">🔍 Digite o Nome para Achar Rápido:</label>
@@ -266,19 +266,15 @@
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-11-09", finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
-        // ---------- Funções de apoio (datas, IDs e correção de dados antigos) ----------
-        // Lê "AAAA-MM-DD" como data LOCAL (sem o erro de fuso que jogava o dia 1º para o mês anterior)
         function parseLocalDate(str) {
             const s = String(str || '').slice(0, 10);
             return /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T00:00:00') : new Date(NaN);
         }
 
-        // Devolve uma data válida "AAAA-MM-DD"; se estiver faltando ou inválida, usa hoje
         function safeIsoDate(str) {
             return isNaN(parseLocalDate(str).getTime()) ? getTodayIsoString() : String(str).slice(0, 10);
         }
 
-        // Próximo ID livre: maior número já usado + 1 (nunca repete, mesmo depois de excluir clientes)
         function nextClientId() {
             let max = 1000;
             clientsList.forEach(c => {
@@ -288,7 +284,6 @@
             return 'EB-' + (max + 1);
         }
 
-        // Conserta dados já salvos: IDs repetidos, datas faltando e histórico de atendimentos
         function normalizeClients() {
             const seen = new Set();
             clientsList.forEach(c => {
@@ -296,7 +291,6 @@
                 seen.add(c.id);
                 c.points = Math.max(0, parseInt(c.points) || 0);
                 c.lastUpdate = safeIsoDate(c.lastUpdate);
-                // history = selos do cartão (1 item por atendimento); visits = datas para o gráfico
                 if (!Array.isArray(c.history)) c.history = c.points > 0 ? [{ p: c.points, d: c.lastUpdate }] : [];
                 if (!Array.isArray(c.visits)) c.visits = c.history.map(h => h.d);
             });
@@ -308,10 +302,8 @@
             updateChartData();
         }
 
-        // Função segura para formatar data sem sofrer alteração de fuso horário
         function formatDateString(dateStr) {
             if (!dateStr) return "--/--/----";
-            // Se já estiver no formato AAAA-MM-DD
             if (dateStr.includes('-') && dateStr.length === 10) {
                 const parts = dateStr.split('-');
                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -333,19 +325,13 @@
         }
 
         function getClientCardDates(client) {
-            // Usa a data fixa salva no cliente. Se não tiver, usa a data de hoje apenas como fallback inicial.
             let updateDateStr = safeIsoDate(client.lastUpdate);
-            
-            // Cria os objetos de data zerando as horas para calcular os dias com precisão exata
             const updateDate = new Date(updateDateStr + 'T00:00:00');
-            
             let validityDays = parseInt(client.days) || 60;
             
-            // Calcula a data de expiração somando exatamente 60 dias (ou o valor de 'days') à data de atualização fixa
             const expiryDate = new Date(updateDate.getTime());
             expiryDate.setDate(expiryDate.getDate() + validityDays);
 
-            // Pega a data de hoje (sem horário)
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
             const expiryDay = new Date(expiryDate.getFullYear(), expiryDate.getMonth(), expiryDate.getDate());
@@ -353,7 +339,6 @@
             const diffTime = expiryDay - today;
             const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
-            // Formata a data de expiração para exibição
             const expDayStr = String(expiryDay.getDate()).padStart(2, '0');
             const expMonthStr = String(expiryDay.getMonth() + 1).padStart(2, '0');
             const expYearStr = expiryDay.getFullYear();
@@ -386,7 +371,6 @@
             updateChartData();
         }
 
-        // Conta ATENDIMENTOS (cada lançamento de pontos), não clientes
         function updateChartData() {
             const monthsNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
             const allVisits = [];
@@ -411,8 +395,6 @@
             attendanceChart.update();
         }
 
-        // Prazo vencido sem resgate: a cliente perde os pontos e os selos.
-        // A data fica como está (aparece "Vencido") até o próximo atendimento, que abre um novo ciclo de 60 dias.
         function expireIfNeeded(c) {
             if (getClientCardDates(c).daysLeft >= 0) return;
             if (c.points > 0 || (c.history && c.history.length > 0)) {
@@ -520,10 +502,7 @@
                 const c = clientsList[currentIndex];
                 c.name = document.getElementById('clientName').value || c.name;
                 if (pts > 0) {
-                    // Novo atendimento: soma pontos e cria 1 selo no cartão.
-                    // A data de cadastro (lastUpdate) NÃO muda: a validade conta sempre a partir do cadastro.
                     const today = getTodayIsoString();
-                    // Cartão vencido: os pontos antigos já foram zerados; este atendimento abre um novo ciclo de 60 dias
                     if (getClientCardDates(c).daysLeft < 0) {
                         expireIfNeeded(c);
                         c.lastUpdate = today;
@@ -533,7 +512,6 @@
                     c.history.push({ p: pts, d: today });
                     c.visits.push(today);
                 } else {
-                    // Correção: tira pontos do último selo e NÃO renova a validade
                     let remove = Math.min(c.points, -pts);
                     c.points -= remove;
                     while (remove > 0 && c.history.length > 0) {
@@ -551,8 +529,6 @@
 
         function resetPoints() {
             if(clientsList.length > 0) {
-                // Resgate: zera pontos e selos e começa um NOVO ciclo de 60 dias a partir de hoje.
-                // É o único momento em que a data muda (o gráfico mantém os atendimentos).
                 if (!confirm("Confirmar o RESGATE desta cliente?\n\nOs pontos voltam para zero e começa um novo prazo de 60 dias a partir de hoje.")) return;
                 clientsList[currentIndex].points = 0;
                 clientsList[currentIndex].history = [];
@@ -588,226 +564,129 @@
                 clientsList[currentIndex].ref = document.getElementById('referredBy').value || 'Direto';
                 clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
-                clientsList[currentIndex].days = parseInt(document.getElementById('validityDays').value) || 60;
-                const startDate = document.getElementById('clientStartDate').value;
-                if (!isNaN(parseLocalDate(startDate).getTime())) clientsList[currentIndex].lastUpdate = startDate;
+                
+                const customDate = document.getElementById('clientStartDate').value;
+                if(customDate) {
+                    clientsList[currentIndex].lastUpdate = safeIsoDate(customDate);
+                }
+                
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
-                alert("Dados salvos com sucesso!");
+                alert("Dados da cliente salvos com sucesso!");
             }
-        }
-
-        function deleteClient() {
-            if(clientsList.length > 1) {
-                if(confirm("Deseja realmente eliminar esta cliente?")) {
-                    clientsList.splice(currentIndex, 1);
-                    currentIndex = 0;
-                    renderTableAndSelect();
-                    selectClientByIndex(0);
-                    alert("Cliente removida.");
-                }
-            } else { alert("Você não pode excluir a última cliente restante."); }
         }
 
         function addNewClientPrompt() {
-            const name = prompt("Digite o nome da nova cliente:");
-            if(name) {
-                const phone = prompt("Digite o WhatsApp com DDD:", "119");
-                const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
-                const newId = nextClientId();
-                clientsList.push({ 
-                    id: newId, 
-                    name: name, 
-                    phone: phone || "", 
-                    ref: ref, 
-                    points: 0, 
-                    days: 60, 
-                    lastUpdate: getTodayIsoString(), // Data de cadastro: fixa, base da validade
-                    finance: "", 
-                    notes: "",
-                    history: [],
-                    visits: []
-                });
-                renderTableAndSelect();
-                selectClientByIndex(clientsList.length - 1);
-                alert("Nova cliente cadastrada!");
+            const name = prompt("Nome completo da nova cliente:");
+            if (!name) return;
+            const phone = prompt("WhatsApp com DDD (ex: 11988887777):") || "";
+            const newClient = {
+                id: nextClientId(),
+                name: name.trim(),
+                phone: phone.trim(),
+                ref: "Direto",
+                points: 0,
+                days: 60,
+                lastUpdate: getTodayIsoString(),
+                finance: "",
+                notes: "Cliente cadastrada pelo painel",
+                history: [],
+                visits: []
+            };
+            clientsList.push(newClient);
+            renderTableAndSelect();
+            selectClientByIndex(clientsList.length - 1);
+        }
+
+        function deleteClient() {
+            if (clientsList.length <= 1) {
+                alert("Você não pode apagar a última cliente restante.");
+                return;
             }
+            if (!confirm(`Deseja realmente excluir a cliente ${clientsList[currentIndex].name}?`)) return;
+            clientsList.splice(currentIndex, 1);
+            currentIndex = 0;
+            renderTableAndSelect();
+            selectClientByIndex(0);
+            alert("Cliente excluída com sucesso.");
         }
 
         function sendWhatsApp() {
-            if(clientsList.length > 0) {
-                const currentName = document.getElementById('clientName').value || clientsList[currentIndex].name;
-                const c = clientsList[currentIndex];
-                const phoneInput = document.getElementById('clientPhone').value || c.phone;
-                if (!phoneInput) { alert("Esta cliente não possui WhatsApp cadastrado!"); return; }
-                let phoneClean = phoneInput.replace(/\D/g, '');
-                if (!phoneClean.startsWith('55')) { phoneClean = '55' + phoneClean; }
-                const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
-                
-                // Selos do cartão: últimos 10 atendimentos no formato pontos.DDMM (ex: 5.0211_3.0911)
-                const stamps = (c.history || []).slice(-10).map(h => `${h.p}.${h.d.slice(8, 10)}${h.d.slice(5, 7)}`).join('_');
-                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days || 60}&data=${encodeURIComponent(safeIsoDate(c.lastUpdate))}&h=${stamps}`;
-                const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
-                const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
-                window.open(waUrl, '_blank');
+            const c = clientsList[currentIndex];
+            if(!c.phone) {
+                alert("Esta cliente não tem número de WhatsApp cadastrado!");
+                return;
             }
+            const dates = getClientCardDates(c);
+            const msg = encodeURIComponent(`Olá *${c.name}*! ✨ Aqui está o status do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n⭐ ID: ${c.id}\n🎁 Seus Pontos: ${c.points} pts\n📅 Válido até: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`);
+            window.open(`https://wa.me/55${c.phone.replace(/\D/g, '')}?text=${msg}`, '_blank');
         }
 
         function exportToExcelXLSX() {
-            let dataExport = clientsList.map(c => {
-                let dates = getClientCardDates(c);
+            const dataToExport = clientsList.map(c => {
+                const dates = getClientCardDates(c);
                 return {
                     "ID": c.id,
                     "Nome": c.name,
                     "WhatsApp": c.phone,
                     "Indicada Por": c.ref,
                     "Pontos": c.points,
-                    "Cadastro em": dates.updatedFormatted,
-                    "Válido até": dates.expiryFormatted,
+                    "Início Ciclo": dates.updatedFormatted,
+                    "Validade": dates.expiryFormatted,
                     "Dias Restantes": dates.daysLeft,
-                    "Financeiro": c.finance || '',
-                    "Anotações": c.notes || '',
-                    "Validade (dias)": parseInt(c.days) || 60,
-                    "Histórico": (c.history || []).map(h => `${h.p}@${h.d}`).join(';'),
-                    "Visitas": (c.visits || []).join(';')
+                    "Financeiro": c.finance,
+                    "Observações": c.notes
                 };
             });
-
-            const worksheet = XLSX.utils.json_to_sheet(dataExport);
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
-            
-            XLSX.writeFile(workbook, `Clientes_Estilo_Mary_${getTodayIsoString()}.xlsx`);
+            XLSX.writeFile(workbook, "clientes_estilo_mary.xlsx");
         }
 
-        function normHeader(s) {
-            return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-        }
-
-        // Aceita "DD/MM/AAAA", "AAAA-MM-DD" ou data numérica do Excel
-        function cellToIsoDate(v) {
-            if (typeof v === 'number' && v > 20000) {
-                return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);
-            }
-            const s = String(v || '').trim();
-            const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
-            if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-            if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-            return '';
-        }
-
-        // Planilha no formato do botão "Baixar Excel": lê cada coluna pelo nome do cabeçalho
-        function parseRowByHeaders(cols, headers) {
-            const get = (name) => { const i = headers.indexOf(name); return i === -1 ? '' : cols[i]; };
-            const name = String(get('nome')).trim();
-            if (!name) return null;
-            const points = Math.max(0, parseInt(get('pontos')) || 0);
-            const lastUpdate = cellToIsoDate(get('cadastro em')) || cellToIsoDate(get('atualizado em')) || getTodayIsoString();
-            let days = parseInt(get('validade (dias)'));
-            if (!days) {
-                const exp = cellToIsoDate(get('valido ate'));
-                if (exp) days = Math.round((parseLocalDate(exp) - parseLocalDate(lastUpdate)) / 86400000);
-            }
-            if (!days || days < 1) days = 60;
-
-            let history = [];
-            String(get('historico')).split(';').forEach(part => {
-                const m = /^(\d+)@(\d{4}-\d{2}-\d{2})$/.exec(part.trim());
-                if (m && parseInt(m[1]) > 0) history.push({ p: parseInt(m[1]), d: m[2] });
-            });
-            if (history.length === 0 && points > 0) history = [{ p: points, d: lastUpdate }];
-            let visits = String(get('visitas')).split(';').map(v => v.trim()).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v));
-            if (visits.length === 0) visits = history.map(h => h.d);
-
-            return {
-                id: String(get('id')).trim(),
-                name: name,
-                phone: String(get('whatsapp')).replace(/\D/g, ''),
-                ref: String(get('indicada por')).trim() || 'Direto',
-                points: points,
-                days: days,
-                lastUpdate: lastUpdate,
-                finance: String(get('financeiro')).trim(),
-                notes: String(get('anotacoes')).trim(),
-                history: history,
-                visits: visits
-            };
-        }
-
-        // Planilha simples sem cabeçalho "Nome" (ex: só nomes e telefones): tenta adivinhar as colunas
-        function parseRowLoose(cols) {
-            let id = '', name = '', phone = '', points = 0, pointsSet = false;
-            cols.forEach(val => {
-                if (val === null || val === undefined) return;
-                const strVal = String(val).trim();
-                if (strVal === '') return;
-                const digits = strVal.replace(/\D/g, '');
-                if (strVal.startsWith('EB-')) { id = strVal; }
-                else if (digits.length >= 10 && digits.length <= 13) { phone = digits; }
-                else if (!isNaN(strVal)) {
-                    if (!pointsSet && parseInt(strVal) >= 0 && parseInt(strVal) <= 50) { points = parseInt(strVal); pointsSet = true; }
-                }
-                else if (name === '') { name = strVal; }
-            });
-            if (!name) return null;
-            const today = getTodayIsoString();
-            return { id: id, name: name, phone: phone, ref: 'Direto', points: points, days: 60, lastUpdate: today, finance: '', notes: '',
-                     history: points > 0 ? [{ p: points, d: today }] : [], visits: points > 0 ? [today] : [] };
-        }
-
-        function importFromExcel(event) {
-            const file = event.target.files[0];
+        function importFromExcel(e) {
+            const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function(evt) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-                    const headers = (rows[0] || []).map(normHeader);
-                    const hasHeaders = headers.indexOf('nome') !== -1;
-
-                    let added = 0, updated = 0;
-                    for (let i = 1; i < rows.length; i++) {
-                        const cols = rows[i];
-                        if (!cols || cols.length === 0) continue;
-                        const parsed = hasHeaders ? parseRowByHeaders(cols, headers) : parseRowLoose(cols);
-                        if (!parsed) continue;
-
-                        // Mesmo ID já existe? Atualiza a cliente em vez de duplicar.
-                        const existing = parsed.id ? clientsList.find(c => c.id === parsed.id) : null;
-                        if (existing) {
-                            Object.assign(existing, parsed);
-                            updated++;
-                        } else {
-                            if (!/^EB-\d+$/.test(parsed.id)) parsed.id = nextClientId();
-                            clientsList.push(parsed);
-                            added++;
-                        }
-                    }
-
-                    if (added + updated > 0) {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (json && json.length > 0) {
+                        json.forEach(row => {
+                            clientsList.push({
+                                id: row["ID"] || nextClientId(),
+                                name: row["Nome"] || "Sem Nome",
+                                phone: String(row["WhatsApp"] || ""),
+                                ref: row["Indicada Por"] || "Direto",
+                                points: parseInt(row["Pontos"]) || 0,
+                                days: 60,
+                                lastUpdate: getTodayIsoString(),
+                                finance: row["Financeiro"] || "",
+                                notes: row["Observações"] || "Importado via Excel",
+                                history: [],
+                                visits: []
+                            });
+                        });
+                        normalizeClients();
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(`Importação concluída: ${added} cliente(s) nova(s) e ${updated} atualizada(s).`);
-                    } else {
-                        alert("Nenhuma cliente válida encontrada no arquivo.");
+                        alert("Clientes importados com sucesso!");
                     }
                 } catch (err) {
-                    alert("Erro ao ler o arquivo Excel: " + err.message);
+                    alert("Erro ao ler o arquivo Excel. Verifique o formato.");
                 }
-                event.target.value = ''; // permite importar o mesmo arquivo de novo
             };
             reader.readAsArrayBuffer(file);
         }
 
-        // Inicializa o painel carregando o primeiro cliente
+        // Inicialização do Painel
         renderTableAndSelect();
-        if(clientsList.length > 0) {
-            selectClientByIndex(0);
-        }
+        selectClientByIndex(0);
     </script>
 </body>
 </html>
