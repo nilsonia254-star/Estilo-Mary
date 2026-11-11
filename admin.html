@@ -151,7 +151,7 @@
             </div>
             <!-- Informações exatas de Datas e Dias Restantes -->
             <div class="preview-dates" id="previewDatesText">
-                📅 Atualizado em: --/--/---- | Válido até: --/--/---- (⏳ -- dias restantes)
+                📅 Cadastro em: --/--/---- | Válido até: --/--/---- (⏳ -- dias restantes)
             </div>
             <!-- Informação Financeira restaurada e bem visível -->
             <div class="preview-finance" id="previewFinance">
@@ -182,6 +182,9 @@
                 
                 <label for="referredBy">Indicada por (Cliente / ID ou Direto):</label>
                 <input type="text" id="referredBy" placeholder="Ex: [EB-1001] Mariana ou Direto">
+                
+                <label for="clientStartDate" style="color: #00d2d3; font-weight: bold;">📅 Início do Ciclo (cadastro ou último resgate):</label>
+                <input type="date" id="clientStartDate">
                 
                 <label for="clientFinanceNotes" style="color: #FFD700; font-weight: bold;">💰 Anotações Financeiras (Ex: Pagou Adiantado / Devendo):</label>
                 <textarea id="clientFinanceNotes" rows="2" placeholder="Ex: Pagou adiantado via Pix / Deve R$ 50,00..."></textarea>
@@ -217,10 +220,10 @@
                     <button class="btn btn-gold" style="width: auto; padding: 10px;" onclick="saveValidityDays()">Fixar</button>
                 </div>
                 
-                <label style="margin-top: 12px; color: #ff6b6b;">Correção de Pontos:</label>
+                <label style="margin-top: 12px; color: #ff6b6b;">Correção de Pontos / Resgate:</label>
                 <div class="btn-group">
                     <button class="btn btn-coral" onclick="addPoints(-1)">- 1 Ponto</button>
-                    <button class="btn btn-coral" onclick="resetPoints()">🔄 Zerar</button>
+                    <button class="btn btn-coral" onclick="resetPoints()">🎁 Resgatou: Zerar e Novo Prazo</button>
                 </div>
                 
                 <button class="btn btn-blue" onclick="sendWhatsApp()">📲 Enviar Cartão para WhatsApp da Cliente</button>
@@ -263,6 +266,43 @@
             { id: "EB-1001", name: "Mariana dos santos", phone: "11967066029", ref: "Direto", points: 1, days: 60, lastUpdate: "2026-11-09", finance: "Pago adiantado", notes: "Cliente VIP" }
         ];
 
+        // ---------- Funções de apoio (datas, IDs e correção de dados antigos) ----------
+        // Lê "AAAA-MM-DD" como data LOCAL (sem o erro de fuso que jogava o dia 1º para o mês anterior)
+        function parseLocalDate(str) {
+            const s = String(str || '').slice(0, 10);
+            return /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + 'T00:00:00') : new Date(NaN);
+        }
+
+        // Devolve uma data válida "AAAA-MM-DD"; se estiver faltando ou inválida, usa hoje
+        function safeIsoDate(str) {
+            return isNaN(parseLocalDate(str).getTime()) ? getTodayIsoString() : String(str).slice(0, 10);
+        }
+
+        // Próximo ID livre: maior número já usado + 1 (nunca repete, mesmo depois de excluir clientes)
+        function nextClientId() {
+            let max = 1000;
+            clientsList.forEach(c => {
+                const m = /^EB-(\d+)$/.exec(c.id || '');
+                if (m) max = Math.max(max, parseInt(m[1]));
+            });
+            return 'EB-' + (max + 1);
+        }
+
+        // Conserta dados já salvos: IDs repetidos, datas faltando e histórico de atendimentos
+        function normalizeClients() {
+            const seen = new Set();
+            clientsList.forEach(c => {
+                if (!c.id || seen.has(c.id)) c.id = nextClientId();
+                seen.add(c.id);
+                c.points = Math.max(0, parseInt(c.points) || 0);
+                c.lastUpdate = safeIsoDate(c.lastUpdate);
+                // history = selos do cartão (1 item por atendimento); visits = datas para o gráfico
+                if (!Array.isArray(c.history)) c.history = c.points > 0 ? [{ p: c.points, d: c.lastUpdate }] : [];
+                if (!Array.isArray(c.visits)) c.visits = c.history.map(h => h.d);
+            });
+        }
+        normalizeClients();
+
         function persistData() {
             localStorage.setItem('mary_clients_list', JSON.stringify(clientsList));
             updateChartData();
@@ -294,7 +334,7 @@
 
         function getClientCardDates(client) {
             // Usa a data fixa salva no cliente. Se não tiver, usa a data de hoje apenas como fallback inicial.
-            let updateDateStr = client.lastUpdate ? client.lastUpdate.slice(0, 10) : getTodayIsoString();
+            let updateDateStr = safeIsoDate(client.lastUpdate);
             
             // Cria os objetos de data zerando as horas para calcular os dias com precisão exata
             const updateDate = new Date(updateDateStr + 'T00:00:00');
@@ -346,34 +386,45 @@
             updateChartData();
         }
 
+        // Conta ATENDIMENTOS (cada lançamento de pontos), não clientes
         function updateChartData() {
             const monthsNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const allVisits = [];
+            clientsList.forEach(c => (c.visits || []).forEach(v => {
+                const d = parseLocalDate(v);
+                if (!isNaN(d.getTime())) allVisits.push(d);
+            }));
             if(currentChartMode === 'monthly') {
+                const thisYear = new Date().getFullYear();
                 let counts = new Array(12).fill(0);
-                clientsList.forEach(c => {
-                    let d = new Date(c.lastUpdate || getTodayIsoString());
-                    if (!isNaN(d.getTime())) {
-                        counts[d.getMonth()]++;
-                    }
-                });
+                allVisits.forEach(d => { if (d.getFullYear() === thisYear) counts[d.getMonth()]++; });
                 attendanceChart.data.labels = monthsNames;
                 attendanceChart.data.datasets[0].data = counts;
             } else {
                 let yearsCount = {};
-                clientsList.forEach(c => {
-                    let d = new Date(c.lastUpdate || getTodayIsoString());
-                    let y = !isNaN(d.getTime()) ? d.getFullYear() : 2026;
-                    yearsCount[y] = (yearsCount[y] || 0) + 1;
-                });
+                allVisits.forEach(d => { yearsCount[d.getFullYear()] = (yearsCount[d.getFullYear()] || 0) + 1; });
                 let years = Object.keys(yearsCount).sort();
-                if(years.length === 0) years = [2026];
+                if(years.length === 0) years = [new Date().getFullYear()];
                 attendanceChart.data.labels = years;
-                attendanceChart.data.datasets[0].data = years.map(y => yearsCount[y]);
+                attendanceChart.data.datasets[0].data = years.map(y => yearsCount[y] || 0);
             }
             attendanceChart.update();
         }
 
+        // Prazo vencido sem resgate: a cliente perde os pontos e os selos.
+        // A data fica como está (aparece "Vencido") até o próximo atendimento, que abre um novo ciclo de 60 dias.
+        function expireIfNeeded(c) {
+            if (getClientCardDates(c).daysLeft >= 0) return;
+            if (c.points > 0 || (c.history && c.history.length > 0)) {
+                const lost = c.points;
+                c.points = 0;
+                c.history = [];
+                c.notes = ((c.notes || '') + ` [Pontos vencidos em ${getClientCardDates(c).expiryFormatted}: perdeu ${lost} pts]`).trim();
+            }
+        }
+
         function renderTableAndSelect(filteredList = null) {
+            clientsList.forEach(expireIfNeeded);
             const tbody = document.getElementById('clientTableBody');
             const select = document.getElementById('selectClient');
             tbody.innerHTML = '';
@@ -385,7 +436,7 @@
                 const index = clientsList.findIndex(c => c.id === client.id);
                 const dates = getClientCardDates(client);
 
-                let daysBadge = `<span class="badge-dates">Atu: ${dates.updatedFormatted}<br>Venc: ${dates.expiryFormatted}<br>⏳ <b>${dates.daysLeft} dias restantes</b></span>`;
+                let daysBadge = `<span class="badge-dates">Cad: ${dates.updatedFormatted}<br>Venc: ${dates.expiryFormatted}<br>⏳ <b>${dates.daysLeft} dias restantes</b></span>`;
                 if (dates.daysLeft < 0) {
                     daysBadge = `<span class="badge-expired">Vencido (${Math.abs(dates.daysLeft)} dias atrás)</span>`;
                 } else if (dates.daysLeft === 0) {
@@ -441,6 +492,7 @@
             document.getElementById('clientPhone').value = c.phone;
             document.getElementById('referredBy').value = c.ref;
             document.getElementById('validityDays').value = c.days || 60;
+            document.getElementById('clientStartDate').value = safeIsoDate(c.lastUpdate);
             document.getElementById('clientFinanceNotes').value = c.finance || '';
             document.getElementById('clientNotes').value = c.notes || '';
 
@@ -454,7 +506,7 @@
             if (dates.daysLeft < 0) daysBadgeText = `Vencido há ${Math.abs(dates.daysLeft)} dias`;
             else if (dates.daysLeft === 0) daysBadgeText = `Vence hoje!`;
 
-            document.getElementById('previewDatesText').innerHTML = `📅 Atualizado em: ${dates.updatedFormatted} | Válido até: ${dates.expiryFormatted} <br>(⏳ <b>${daysBadgeText}</b>)`;
+            document.getElementById('previewDatesText').innerHTML = `📅 Cadastro em: ${dates.updatedFormatted} | Válido até: ${dates.expiryFormatted} <br>(⏳ <b>${daysBadgeText}</b>)`;
             document.getElementById('previewFinance').innerHTML = `💰 Financeiro: ${c.finance || 'Nenhuma anotação financeira registrada.'}`;
         }
 
@@ -465,10 +517,33 @@
 
         function addPoints(pts) {
             if(clientsList.length > 0) {
-                clientsList[currentIndex].name = document.getElementById('clientName').value || clientsList[currentIndex].name;
-                clientsList[currentIndex].points = Math.max(0, clientsList[currentIndex].points + pts);
-                // Atualiza a data de modificação apenas quando ganha ponto
-                clientsList[currentIndex].lastUpdate = getTodayIsoString();
+                const c = clientsList[currentIndex];
+                c.name = document.getElementById('clientName').value || c.name;
+                if (pts > 0) {
+                    // Novo atendimento: soma pontos e cria 1 selo no cartão.
+                    // A data de cadastro (lastUpdate) NÃO muda: a validade conta sempre a partir do cadastro.
+                    const today = getTodayIsoString();
+                    // Cartão vencido: os pontos antigos já foram zerados; este atendimento abre um novo ciclo de 60 dias
+                    if (getClientCardDates(c).daysLeft < 0) {
+                        expireIfNeeded(c);
+                        c.lastUpdate = today;
+                        c.days = 60;
+                    }
+                    c.points = c.points + pts;
+                    c.history.push({ p: pts, d: today });
+                    c.visits.push(today);
+                } else {
+                    // Correção: tira pontos do último selo e NÃO renova a validade
+                    let remove = Math.min(c.points, -pts);
+                    c.points -= remove;
+                    while (remove > 0 && c.history.length > 0) {
+                        const last = c.history[c.history.length - 1];
+                        const take = Math.min(last.p, remove);
+                        last.p -= take;
+                        remove -= take;
+                        if (last.p <= 0) { c.history.pop(); c.visits.pop(); }
+                    }
+                }
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -476,8 +551,13 @@
 
         function resetPoints() {
             if(clientsList.length > 0) {
+                // Resgate: zera pontos e selos e começa um NOVO ciclo de 60 dias a partir de hoje.
+                // É o único momento em que a data muda (o gráfico mantém os atendimentos).
+                if (!confirm("Confirmar o RESGATE desta cliente?\n\nOs pontos voltam para zero e começa um novo prazo de 60 dias a partir de hoje.")) return;
                 clientsList[currentIndex].points = 0;
+                clientsList[currentIndex].history = [];
                 clientsList[currentIndex].lastUpdate = getTodayIsoString();
+                clientsList[currentIndex].days = 60;
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
             }
@@ -485,7 +565,7 @@
 
         function adjustDays(days) {
             if(clientsList.length > 0) {
-                clientsList[currentIndex].days = Math.max(0, (clientsList[currentIndex].days || 60) + days);
+                clientsList[currentIndex].days = Math.max(1, (parseInt(clientsList[currentIndex].days) || 60) + days);
                 document.getElementById('validityDays').value = clientsList[currentIndex].days;
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
@@ -509,6 +589,8 @@
                 clientsList[currentIndex].finance = document.getElementById('clientFinanceNotes').value;
                 clientsList[currentIndex].notes = document.getElementById('clientNotes').value;
                 clientsList[currentIndex].days = parseInt(document.getElementById('validityDays').value) || 60;
+                const startDate = document.getElementById('clientStartDate').value;
+                if (!isNaN(parseLocalDate(startDate).getTime())) clientsList[currentIndex].lastUpdate = startDate;
                 renderTableAndSelect();
                 selectClientByIndex(currentIndex);
                 alert("Dados salvos com sucesso!");
@@ -532,7 +614,7 @@
             if(name) {
                 const phone = prompt("Digite o WhatsApp com DDD:", "119");
                 const ref = prompt("Quem indicou essa cliente? (Ex: [EB-1001] Mariana ou Direto):") || "Direto";
-                const newId = "EB-100" + (clientsList.length + 1);
+                const newId = nextClientId();
                 clientsList.push({ 
                     id: newId, 
                     name: name, 
@@ -540,9 +622,11 @@
                     ref: ref, 
                     points: 0, 
                     days: 60, 
-                    lastUpdate: getTodayIsoString(), // Data fixa gravada no cadastro
+                    lastUpdate: getTodayIsoString(), // Data de cadastro: fixa, base da validade
                     finance: "", 
-                    notes: "" 
+                    notes: "",
+                    history: [],
+                    visits: []
                 });
                 renderTableAndSelect();
                 selectClientByIndex(clientsList.length - 1);
@@ -560,7 +644,9 @@
                 if (!phoneClean.startsWith('55')) { phoneClean = '55' + phoneClean; }
                 const baseUrl = "https://nilsonia254-star.github.io/Estilo-Mary/";
                 
-                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days || 60}&data=${encodeURIComponent(c.lastUpdate)}`;
+                // Selos do cartão: últimos 10 atendimentos no formato pontos.DDMM (ex: 5.0211_3.0911)
+                const stamps = (c.history || []).slice(-10).map(h => `${h.p}.${h.d.slice(8, 10)}${h.d.slice(5, 7)}`).join('_');
+                const fullLink = `${baseUrl}?nome=${encodeURIComponent(currentName)}&id=${c.id}&pontos=${c.points}&dias=${c.days || 60}&data=${encodeURIComponent(safeIsoDate(c.lastUpdate))}&h=${stamps}`;
                 const msg = `Olá ${currentName}! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${fullLink}`;
                 const waUrl = `https://api.whatsapp.com/send?phone=${phoneClean}&text=${encodeURIComponent(msg)}`;
                 window.open(waUrl, '_blank');
@@ -576,11 +662,14 @@
                     "WhatsApp": c.phone,
                     "Indicada Por": c.ref,
                     "Pontos": c.points,
-                    "Atualizado em": dates.updatedFormatted,
+                    "Cadastro em": dates.updatedFormatted,
                     "Válido até": dates.expiryFormatted,
                     "Dias Restantes": dates.daysLeft,
                     "Financeiro": c.finance || '',
-                    "Anotações": c.notes || ''
+                    "Anotações": c.notes || '',
+                    "Validade (dias)": parseInt(c.days) || 60,
+                    "Histórico": (c.history || []).map(h => `${h.p}@${h.d}`).join(';'),
+                    "Visitas": (c.visits || []).join(';')
                 };
             });
 
@@ -589,6 +678,81 @@
             XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
             
             XLSX.writeFile(workbook, `Clientes_Estilo_Mary_${getTodayIsoString()}.xlsx`);
+        }
+
+        function normHeader(s) {
+            return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        // Aceita "DD/MM/AAAA", "AAAA-MM-DD" ou data numérica do Excel
+        function cellToIsoDate(v) {
+            if (typeof v === 'number' && v > 20000) {
+                return new Date(Math.round((v - 25569) * 86400000)).toISOString().slice(0, 10);
+            }
+            const s = String(v || '').trim();
+            const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
+            if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+            if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+            return '';
+        }
+
+        // Planilha no formato do botão "Baixar Excel": lê cada coluna pelo nome do cabeçalho
+        function parseRowByHeaders(cols, headers) {
+            const get = (name) => { const i = headers.indexOf(name); return i === -1 ? '' : cols[i]; };
+            const name = String(get('nome')).trim();
+            if (!name) return null;
+            const points = Math.max(0, parseInt(get('pontos')) || 0);
+            const lastUpdate = cellToIsoDate(get('cadastro em')) || cellToIsoDate(get('atualizado em')) || getTodayIsoString();
+            let days = parseInt(get('validade (dias)'));
+            if (!days) {
+                const exp = cellToIsoDate(get('valido ate'));
+                if (exp) days = Math.round((parseLocalDate(exp) - parseLocalDate(lastUpdate)) / 86400000);
+            }
+            if (!days || days < 1) days = 60;
+
+            let history = [];
+            String(get('historico')).split(';').forEach(part => {
+                const m = /^(\d+)@(\d{4}-\d{2}-\d{2})$/.exec(part.trim());
+                if (m && parseInt(m[1]) > 0) history.push({ p: parseInt(m[1]), d: m[2] });
+            });
+            if (history.length === 0 && points > 0) history = [{ p: points, d: lastUpdate }];
+            let visits = String(get('visitas')).split(';').map(v => v.trim()).filter(v => /^\d{4}-\d{2}-\d{2}$/.test(v));
+            if (visits.length === 0) visits = history.map(h => h.d);
+
+            return {
+                id: String(get('id')).trim(),
+                name: name,
+                phone: String(get('whatsapp')).replace(/\D/g, ''),
+                ref: String(get('indicada por')).trim() || 'Direto',
+                points: points,
+                days: days,
+                lastUpdate: lastUpdate,
+                finance: String(get('financeiro')).trim(),
+                notes: String(get('anotacoes')).trim(),
+                history: history,
+                visits: visits
+            };
+        }
+
+        // Planilha simples sem cabeçalho "Nome" (ex: só nomes e telefones): tenta adivinhar as colunas
+        function parseRowLoose(cols) {
+            let id = '', name = '', phone = '', points = 0, pointsSet = false;
+            cols.forEach(val => {
+                if (val === null || val === undefined) return;
+                const strVal = String(val).trim();
+                if (strVal === '') return;
+                const digits = strVal.replace(/\D/g, '');
+                if (strVal.startsWith('EB-')) { id = strVal; }
+                else if (digits.length >= 10 && digits.length <= 13) { phone = digits; }
+                else if (!isNaN(strVal)) {
+                    if (!pointsSet && parseInt(strVal) >= 0 && parseInt(strVal) <= 50) { points = parseInt(strVal); pointsSet = true; }
+                }
+                else if (name === '') { name = strVal; }
+            });
+            if (!name) return null;
+            const today = getTodayIsoString();
+            return { id: id, name: name, phone: phone, ref: 'Direto', points: points, days: 60, lastUpdate: today, finance: '', notes: '',
+                     history: points > 0 ? [{ p: points, d: today }] : [], visits: points > 0 ? [today] : [] };
         }
 
         function importFromExcel(event) {
@@ -600,67 +764,41 @@
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    let imported = [];
-                    for (let i = 1; i < jsonRows.length; i++) {
-                        const cols = jsonRows[i];
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                    const headers = (rows[0] || []).map(normHeader);
+                    const hasHeaders = headers.indexOf('nome') !== -1;
+
+                    let added = 0, updated = 0;
+                    for (let i = 1; i < rows.length; i++) {
+                        const cols = rows[i];
                         if (!cols || cols.length === 0) continue;
+                        const parsed = hasHeaders ? parseRowByHeaders(cols, headers) : parseRowLoose(cols);
+                        if (!parsed) continue;
 
-                        let id = `EB-100${clientsList.length + i}`;
-                        let name = '';
-                        let phone = '';
-                        let ref = 'Direto';
-                        let points = 0;
-                        let days = 60;
-                        let finance = '';
-                        let notes = '';
-
-                        cols.forEach(val => {
-                            if (val === null || val === undefined) return;
-                            let strVal = String(val).trim();
-
-                            if (strVal.startsWith('EB-')) {
-                                id = strVal;
-                            } else if (strVal.replace(/\D/g, '').length >= 10 && strVal.replace(/\D/g, '').length <= 13) {
-                                phone = strVal.replace(/\D/g, '');
-                            } else if (!isNaN(strVal) && strVal !== '' && parseInt(strVal) <= 50 && points === 0 && !strVal.includes('119')) {
-                                points = parseInt(strVal);
-                            } else if (!isNaN(strVal) && parseInt(strVal) > 50) {
-                                days = parseInt(strVal);
-                            } else if (name === '' && isNaN(strVal) && !strVal.startsWith('EB-')) {
-                                name = strVal;
-                            }
-                        });
-
-                        if (name) {
-                            imported.push({
-                                id: id,
-                                name: name,
-                                phone: phone,
-                                ref: ref,
-                                points: points,
-                                days: days,
-                                lastUpdate: getTodayIsoString(),
-                                finance: finance,
-                                notes: notes
-                            });
+                        // Mesmo ID já existe? Atualiza a cliente em vez de duplicar.
+                        const existing = parsed.id ? clientsList.find(c => c.id === parsed.id) : null;
+                        if (existing) {
+                            Object.assign(existing, parsed);
+                            updated++;
+                        } else {
+                            if (!/^EB-\d+$/.test(parsed.id)) parsed.id = nextClientId();
+                            clientsList.push(parsed);
+                            added++;
                         }
                     }
 
-                    if (imported.length > 0) {
-                        clientsList = clientsList.concat(imported);
+                    if (added + updated > 0) {
                         renderTableAndSelect();
                         selectClientByIndex(0);
-                        alert(imported.length + " clientes importadas com sucesso!");
+                        alert(`Importação concluída: ${added} cliente(s) nova(s) e ${updated} atualizada(s).`);
                     } else {
                         alert("Nenhuma cliente válida encontrada no arquivo.");
                     }
                 } catch (err) {
                     alert("Erro ao ler o arquivo Excel: " + err.message);
                 }
+                event.target.value = ''; // permite importar o mesmo arquivo de novo
             };
             reader.readAsArrayBuffer(file);
         }
