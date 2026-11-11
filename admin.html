@@ -614,7 +614,7 @@
         function sendWhatsApp() {
             const c = clientsList[currentIndex];
             if(!c.phone) {
-                alert("Esta cliente não tem número de WhatsApp cadastrado!");
+                alert("Esta cliente nao tem numero de WhatsApp cadastrado!");
                 return;
             }
             
@@ -625,11 +625,11 @@
 
             const dates = getClientCardDates(c);
             
-            // Texto limpo sem erros de formatação ou caracteres corrompidos
-            const textoMensagem = `Olá *${c.name}*! Aqui está o status atualizado do seu Cartão Fidelidade no *Designer Estilo Mary*:\n\n- ID: ${c.id}\n- Seus Pontos: ${c.points} pts\n- Valido ate: ${dates.expiryFormatted} (${dates.daysLeft} dias restantes)\n\nVenha nos visitar e acumule mais pontos!`;
+            // Mensagem limpa usando texto puro concatenado (sem emojis corrompidos)
+            const textoMensagem = "Ola " + c.name + "! Aqui esta o status do seu Cartao Fidelidade no Designer Estilo Mary:\n\n- ID: " + c.id + "\n- Pontos: " + c.points + " pts\n- Valido ate: " + dates.expiryFormatted + " (" + dates.daysLeft + " dias restantes)\n\nVenha nos visitar e acumule mais pontos!";
             
             const msgCodificada = encodeURIComponent(textoMensagem);
-            const urlWhatsApp = `https://wa.me/${telefoneLimpo}?text=${msgCodificada}`;
+            const urlWhatsApp = "https://wa.me/" + telefoneLimpo + "?text=" + msgCodificada;
             window.open(urlWhatsApp, '_blank');
         }
 
