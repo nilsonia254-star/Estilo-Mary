@@ -1,244 +1,29 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cartão Fidelidade - Designer Estilo Mary</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-        body {
-            background-color: #080808;
-            color: #FFFFFF;
-            padding: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .card-container {
-            width: 100%;
-            max-width: 420px;
-            background: #12141c;
-            border-radius: 20px;
-            padding: 18px;
-            border: 2px solid #D4AF37;
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
-            text-align: center;
-        }
-        .header-title { color: #FFD700; font-size: 16px; font-weight: 800; margin-bottom: 2px; }
-        .header-subtitle { color: #a0a6b8; font-size: 10px; font-weight: 600; letter-spacing: 2px; margin-bottom: 14px; }
-        
-        .welcome-box {
-            background: #191c26;
-            border: 1px solid #2d3343;
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #ffffff;
-        }
-        .welcome-box span { color: #FFD700; }
+Por favor, preciso que você reescreva o código completo do meu arquivo index.html para o Cartão Fidelidade Digital do Designer Estilo Mary, deixando-o exatamente idêntico ao layout visual e funcional da imagem de referência que enviei. 
 
-        .points-display-box {
-            background: linear-gradient(135deg, #FFE58F 0%, #D4AF37 100%);
-            color: #0A0A0A;
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 8px;
-            font-size: 24px;
-            font-weight: 800;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
-        }
-        .dates-info {
-            font-size: 10px;
-            color: #00d2d3;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
+Siga rigorosamente estas especificações técnicas e visuais:
 
-        .stamps-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .stamp-slot {
-            aspect-ratio: 1;
-            background: #181b24;
-            border: 2px solid #2a2f40;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: #7b839b;
-            padding: 2px;
-        }
-        .stamp-slot.filled {
-            background: #14161d;
-            border: 2px solid #ff4757;
-            color: #ffffff;
-        }
-        .stamp-slot.filled .slot-label {
-            font-size: 8px;
-            color: #ff6b81;
-            font-weight: 700;
-            line-height: 1;
-        }
-        .stamp-slot.filled .slot-date {
-            font-size: 8px;
-            color: #ffffff;
-            margin-top: 2px;
-        }
+1. Visual Geral: Fundo preto obsidiano (#080808 / #12141c) com bordas finas douradas elegantes (#D4AF37).
+2. Cabeçalho: 
+   - Título com símbolos dourados: ✨ Designer Estilo Mary ✨
+   - Subtítulo: CARTÃO FIDELIDADE DIGITAL
+3. Bloco de Boas-Vindas: 
+   - Saudação dinâmica via parâmetros da URL (nome): Olá, [Nome] ! 👏
+   - Subtítulo de evento: Você ganhou pontos em [Data] 💖
+4. Caixa de Pontuação Principal:
+   - Um retângulo grande com fundo degradê amarelo/dourado vibrante contendo o total de pontos (ex: 5 pontos 💖), com texto escuro e forte.
+   - Linha de datas logo abaixo: Atualizado em [Data] - Válido até [Data] (calculado dinamicamente com base nos parâmetros pontos, dias e nome passados na URL).
+5. Grade de 10 Quadrados (Regra Individual de Preenchimento):
+   - 10 slots organizados em grade.
+   - Para cada quadrado menor ou igual ao número de pontos da cliente (pontos da URL): deve exibir fundo escuro com borda rosa/magenta destacada, contendo o selo +5, a linha ♥ Atend. e a data do atendimento.
+   - Para os quadrados vazios (acima dos pontos da cliente): devem exibir apenas o número sequencial centralizado (2, 3, 4... até 10) em cor cinza estilizada.
+6. Faixa de Total Acumulado:
+   - Caixa estilo painel com fundo escuro e borda dourada, exibindo TOTAL ACUMULADO à esquerda e [X] PTS em destaque amarelo à direita.
+7. Blocos Informativos Fixos:
+   - Caixa de Endereço do Estúdio: Rua Nova Aliança, nº 28 (Travessia da Agostiniana Chantal) - Jd. Nova Conquista.
+   - Caixa de Regra do Cartão: Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias).
+8. Botões de Ação na Base:
+   - Botão Verde brilhante: 💬 Agende: WhatsApp (11) 96706-6029 (link direto para o WhatsApp de agendamento).
+   - Botão Azul Claro: 🎁 Indique uma amiga e ganhe +5 pts (com função de compartilhamento ou cópia do link via navigator.share / prompt).
+   - Texto de rodapé inferior: Toque nos botões acima para agendar ou indicar.
 
-        .total-accumulated {
-            background: #191c26;
-            border: 1px solid #D4AF37;
-            border-radius: 10px;
-            padding: 10px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            font-size: 12px;
-            font-weight: bold;
-            color: #FFD700;
-        }
-
-        .info-box-dark {
-            background: #161922;
-            border: 1px solid #232733;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: left;
-            margin-bottom: 12px;
-            font-size: 11px;
-            color: #b0b6c6;
-        }
-        .info-box-dark b { color: #FFD700; }
-
-        .btn-action {
-            display: block;
-            width: 100%;
-            padding: 11px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 12px;
-            text-align: center;
-            text-decoration: none;
-            margin-bottom: 8px;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-whatsapp { background: #00C853; color: #ffffff; }
-        .btn-referral { background: #00A8E8; color: #ffffff; }
-        .footer-hint { font-size: 10px; color: #7b839b; margin-top: 6px; }
-    </style>
-</head>
-<body>
-
-    <div class="card-container">
-        <div class="header-title">✨ Designer Estilo Mary ✨</div>
-        <div class="header-subtitle">CARTÃO FIDELIDADE DIGITAL</div>
-
-        <div class="welcome-box" id="welcomeMsg">
-            Olá, <span>Carregando...</span> ! 💖
-        </div>
-
-        <div class="points-display-box" id="pointsBox">
-            0 pontos
-        </div>
-        <div class="dates-info" id="datesBox">
-            Atualizado recentemente - Válido por 60 dias
-        </div>
-
-        <!-- Grade de 10 Espaços -->
-        <div class="stamps-grid" id="stampsGrid"></div>
-
-        <div class="total-accumulated">
-            <span>TOTAL ACUMULADO</span>
-            <span id="totalPointsText">0 PTS</span>
-        </div>
-
-        <div class="info-box-dark">
-            <b>📍 Endereço do Estúdio:</b><br>
-            Rua Nova Aliança, nº 28 (Travessia da Agostiniana Chantal) - Jd. Nova Conquista
-        </div>
-
-        <div class="info-box-dark">
-            <b>🎁 Regra do Cartão:</b><br>
-            Acumule pontos a cada procedimento e resgate seus benefícios exclusivos! (Validade: 60 dias)
-        </div>
-
-        <a href="https://wa.me/5511967066029?text=Olá%20Mary!%20Gostaria%20de%20agendar%20um%20horário." class="btn-action btn-whatsapp" target="_blank">
-            💬 Agende: WhatsApp (11) 96706-6029
-        </a>
-
-        <a href="#" id="btnReferral" class="btn-action btn-referral" onclick="shareReferral(); return false;">
-            🎁 Indique uma amiga e ganhe +5 pts
-        </a>
-
-        <div class="footer-hint">Toque nos botões acima para agendar ou indicar</div>
-    </div>
-
-    <script>
-        function getQueryParams() {
-            const params = {};
-            window.location.search.substring(1).split("&").forEach(item => {
-                const parts = item.split("=");
-                if(parts.length === 2) {
-                    params[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-                }
-            });
-            return params;
-        }
-
-        function loadCardData() {
-            const params = getQueryParams();
-            const clientName = params.nome || "Cliente";
-            const points = parseInt(params.pontos) || 0;
-
-            document.getElementById('welcomeMsg').innerHTML = `Olá, <span>${clientName}</span> ! 💖`;
-            document.getElementById('pointsBox').innerText = `${points} pontos`;
-            document.getElementById('totalPointsText').innerText = `${points} PTS`;
-            document.getElementById('datesBox').innerText = `Atualizado recentemente - Válido por 60 dias`;
-
-            const grid = document.getElementById('stampsGrid');
-            grid.innerHTML = '';
-            
-            const today = new Date();
-            const dateFormatted = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}`;
-
-            // Renderiza os 10 espaços: apenas os quadrados até o número de pontos ficam com o carimbo, os demais mostram o número (1, 2, 3...)
-            for (let i = 1; i <= 10; i++) {
-                const slot = document.createElement('div');
-                if (i <= points) {
-                    slot.className = 'stamp-slot filled';
-                    slot.innerHTML = `<span class="slot-label">♥ Atend.</span><span class="slot-date">${dateFormatted}</span>`;
-                } else {
-                    slot.className = 'stamp-slot';
-                    slot.innerText = i;
-                }
-                grid.appendChild(slot);
-            }
-        }
-
-        function shareReferral() {
-            const params = getQueryParams();
-            const id = params.id || "EB-1001";
-            const text = `Olá! Indico o estúdio Designer Estilo Mary para você fazer suas sobrancelhas e cílios. Use meu ID (${id}) ao agendar!`;
-            if (navigator.share) {
-                navigator.share({ title: 'Indicação Designer Estilo Mary', text: text, url: window.location.href });
-            } else {
-                prompt("Copie seu link de indicação para enviar às amigas:", window.location.href);
-            }
-        }
-
-        loadCardData();
-    </script>
-</body>
-</html>
+O código deve ler corretamente os parâmetros da URL (nome, id, pontos, dias) para personalizar o cartão instantaneamente ao abrir. Me entregue o código completo, pronto e limpo em arquivo único HTML.
