@@ -193,6 +193,21 @@
             return isNaN(parseLocalDate(str).getTime()) ? getTodayIsoString() : String(str).slice(0, 10);
         }
 
+        // CORREÇÃO: aceita datas do Excel em "DD/MM/AAAA", "AAAA-MM-DD" ou número de série do Excel
+        function anyDateToIso(v) {
+            if (v === undefined || v === null || v === '') return null;
+            if (typeof v === 'number' && v > 20000) {
+                const d = new Date(Math.round((v - 25569) * 86400000));
+                return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+            }
+            const s = String(v).trim();
+            let m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+            if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+            m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+            if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+            return null;
+        }
+
         function nextClientId() {
             let max = 1000;
             clientsList.forEach(c => {
@@ -382,6 +397,7 @@
                 c.name = document.getElementById('clientName').value || c.name;
                 if (pts > 0) {
                     const today = getTodayIsoString();
+                    // Regra: a data NÃO muda ao lançar pontos. Só começa um novo prazo se o cartão já tinha vencido.
                     if (getClientCardDates(c).daysLeft < 0) { expireIfNeeded(c); c.lastUpdate = today; c.days = 60; }
                     c.points += pts;
                     c.history.push({ p: pts, d: today });
@@ -428,6 +444,7 @@
                 const val = parseInt(document.getElementById('validityDays').value) || 60;
                 clientsList[currentIndex].days = val;
                 renderTableAndSelect();
+                selectClientByIndex(currentIndex);
                 alert("Validade de " + val + " dias fixada!");
             }
         }
@@ -475,9 +492,22 @@
             let telefoneLimpo = c.phone.replace(/\D/g, '');
             if (!telefoneLimpo.startsWith('55')) telefoneLimpo = '55' + telefoneLimpo;
 
-            // URL base do seu GitHub Pages correspondente ao index.html
-            const baseURL = window.location.href.replace('admin.html', 'index.html');
-            const linkPersonalizado = `${baseURL}?nome=${encodeURIComponent(c.name)}&id=${c.id}&pontos=${c.points}&dias=${c.days || 60}`;
+            // URL do cartão (index.html) na mesma pasta do painel, sem ?parâmetros ou #
+            const baseURL = window.location.href.split(/[?#]/)[0].replace(/admin\.html$/i, 'index.html');
+
+            // CORREÇÃO: o link agora leva a DATA DE INÍCIO DO CICLO (data=AAAA-MM-DD).
+            // Sem ela o cartão contava os 60 dias a partir do dia em que a cliente abria o link,
+            // por isso aparecia sempre "60 dias restantes".
+            const inicioCiclo = safeIsoDate(c.lastUpdate);
+
+            // Selos do cartão: cada atendimento vira pontos.DDMM (ex: 1.0911_3.1511)
+            const selos = (c.history || [])
+                .filter(h => h && h.p > 0 && parseLocalDate(h.d).getTime() === parseLocalDate(h.d).getTime())
+                .slice(-10)
+                .map(h => `${h.p}.${h.d.slice(8, 10)}${h.d.slice(5, 7)}`)
+                .join('_');
+
+            const linkPersonalizado = `${baseURL}?nome=${encodeURIComponent(c.name)}&id=${encodeURIComponent(c.id)}&pontos=${c.points}&dias=${c.days || 60}&data=${inicioCiclo}` + (selos ? `&h=${selos}` : '');
 
             // Mensagem exata no mesmo formato que você usava antes
             const textoMensagem = `Olá ${c.name} ! 💖 Seu Cartão Fidelidade no Designer Estilo Mary está com ${c.points} pontos! Indique suas amigas usando seu link e ganhe pontos extras: ${linkPersonalizado}`;
@@ -507,16 +537,29 @@
                     const wb = XLSX.read(data, {type: 'array'});
                     const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                     if (json && json.length > 0) {
+                        let novas = 0, atualizadas = 0;
                         json.forEach(row => {
-                            clientsList.push({
-                                id: row["ID"] || nextClientId(), name: row["Nome"] || "Sem Nome",
-                                phone: String(row["WhatsApp"] || ""), ref: row["Indicada Por"] || "Direto",
-                                points: parseInt(row["Pontos"]) || 0, days: 60, lastUpdate: getTodayIsoString(),
-                                finance: row["Financeiro"] || "", notes: row["Observações"] || "Importado", history: [], visits: []
-                            });
+                            // CORREÇÃO: mantém a data de início e a validade que estão na planilha
+                            // (antes toda cliente importada ganhava a data de hoje e um prazo novo de 60 dias)
+                            const inicio = anyDateToIso(row["Início Ciclo"]) || getTodayIsoString();
+                            const venc = anyDateToIso(row["Validade"]);
+                            let dias = 60;
+                            if (venc) {
+                                const d = Math.round((parseLocalDate(venc) - parseLocalDate(inicio)) / 86400000);
+                                if (d > 0) dias = d;
+                            }
+                            const dados = {
+                                name: row["Nome"] || "Sem Nome", phone: String(row["WhatsApp"] || ""), ref: row["Indicada Por"] || "Direto",
+                                points: parseInt(row["Pontos"]) || 0, days: dias, lastUpdate: inicio,
+                                finance: row["Financeiro"] || "", notes: row["Observações"] || "Importado"
+                            };
+                            // Se a cliente já existe (mesmo ID), atualiza em vez de duplicar
+                            const existente = row["ID"] ? clientsList.find(c => c.id === String(row["ID"])) : null;
+                            if (existente) { Object.assign(existente, dados); atualizadas++; }
+                            else { clientsList.push({ id: row["ID"] ? String(row["ID"]) : nextClientId(), ...dados, history: [], visits: [] }); novas++; }
                         });
                         normalizeClients(); renderTableAndSelect(); selectClientByIndex(0);
-                        alert("Importado com sucesso!");
+                        alert(`Importado com sucesso!\n${novas} cliente(s) nova(s) e ${atualizadas} atualizada(s).`);
                     }
                 } catch (err) { alert("Erro ao ler o arquivo."); }
             };
