@@ -120,11 +120,17 @@
         let points = Math.max(0, parseInt(params.get('pontos')) || 0);
 
         // ================= PRAZO: 60 DIAS CORRIDOS A PARTIR DA DATA DO PAINEL =================
-        const startDate = parseIsoDate(params.get('data')) || startOfToday();
-        const expiryDate = new Date(startDate.getTime());
-        expiryDate.setDate(expiryDate.getDate() + validityDays);
-        const daysLeft = Math.round((expiryDate - startOfToday()) / 86400000);
-        const isExpired = daysLeft < 0;
+        // CORREÇÃO: se o link não trouxer a data de início (links antigos), NÃO usamos mais "hoje"
+        // como início — era isso que fazia o cartão mostrar sempre 60 dias restantes.
+        const startDate = parseIsoDate(params.get('data'));
+        const hasDate = startDate !== null;
+        let expiryDate = null, daysLeft = null, isExpired = false;
+        if (hasDate) {
+            expiryDate = new Date(startDate.getTime());
+            expiryDate.setDate(expiryDate.getDate() + validityDays);
+            daysLeft = Math.round((expiryDate - startOfToday()) / 86400000);
+            isExpired = daysLeft < 0;
+        }
         if (isExpired) points = 0;   // prazo vencido sem resgate: os pontos não valem mais
 
         // ================= SELOS (cada quadrado = 1 atendimento) =================
@@ -137,7 +143,7 @@
                 });
             } else if (points > 0) {
                 // Link sem histórico: mostra o saldo como um único selo
-                stamps.push({ value: `+${points}`, date: formatShort(startDate) });
+                stamps.push({ value: `+${points}`, date: hasDate ? formatShort(startDate) : '' });
             }
         }
         stamps = stamps.slice(-10);   // os 10 atendimentos mais recentes
@@ -150,15 +156,20 @@
         $('totalPointsText').innerText = `${points} PTS`;
         $('validityDaysText').innerText = validityDays;
 
-        let daysText = `⏳ ${daysLeft} dias restantes`;
-        if (isExpired) daysText = `⚠️ Vencido há ${Math.abs(daysLeft)} dia${Math.abs(daysLeft) === 1 ? '' : 's'}`;
-        else if (daysLeft === 0) daysText = '⚠️ Vence hoje!';
-        $('datesDisplay').innerText = `Atualizado em ${formatFull(startDate)} - Válido até ${formatFull(expiryDate)}\n(${daysText})`;
-        if (isExpired) $('datesDisplay').classList.add('expired');
+        if (hasDate) {
+            let daysText = `⏳ ${daysLeft} dia${daysLeft === 1 ? '' : 's'} restante${daysLeft === 1 ? '' : 's'}`;
+            if (isExpired) daysText = `⚠️ Vencido há ${Math.abs(daysLeft)} dia${Math.abs(daysLeft) === 1 ? '' : 's'}`;
+            else if (daysLeft === 0) daysText = '⚠️ Vence hoje!';
+            $('datesDisplay').innerText = `Início em ${formatFull(startDate)} - Válido até ${formatFull(expiryDate)}\n(${daysText})`;
+            if (isExpired || daysLeft === 0) $('datesDisplay').classList.add('expired');
+        } else {
+            // Link antigo, sem a data de início: não inventa um prazo
+            $('datesDisplay').innerText = `Validade de ${validityDays} dias a partir do seu cadastro.\nPeça seu link atualizado no WhatsApp para ver os dias restantes.`;
+        }
 
         if (isExpired) {
             $('recentActivityText').innerText = `Seus pontos venceram em ${formatFull(expiryDate)}. Agende um atendimento para começar um novo cartão 💅`;
-        } else if (stamps.length > 0) {
+        } else if (stamps.length > 0 && stamps[stamps.length - 1].date) {
             $('recentActivityText').innerText = `Você ganhou pontos em ${stamps[stamps.length - 1].date} 🎉`;
         }
 
