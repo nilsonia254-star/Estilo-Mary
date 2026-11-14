@@ -52,6 +52,33 @@
         .badge-ref { background: #0088ff22; color: #0088ff; padding: 2px 6px; border-radius: 4px; font-size: 11px; border: 1px solid #0088ff44; }
         .badge-dates { background: #00d2d322; color: #00d2d3; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #00d2d344; font-size: 10px; line-height: 1.4; display: inline-block; }
         .badge-expired { background: #ee525322; color: #ff6b6b; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; font-size: 10px; }
+
+        /* ===== Relatório Mensal ===== */
+        .report-section { margin-top: 20px; border-top: 1px solid #232733; padding-top: 16px; }
+        .report-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 4px; }
+        .report-controls > div { flex: 1; min-width: 110px; }
+        .report-controls .btn { flex: 2; min-width: 200px; padding: 11px; font-size: 13px; }
+        .report-actions .btn { flex: 1; min-width: 130px; width: auto; padding: 10px; }
+        .report-title { color: #FFD700; font-size: 16px; font-weight: 700; margin: 16px 0 10px; }
+        .report-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .report-tile { background: #1a1d26; border: 1px solid #2a2e3d; border-radius: 10px; padding: 10px; text-align: center; }
+        .report-tile b { display: block; font-size: 20px; color: #FFD700; }
+        .report-tile span { font-size: 10px; color: #a0a6b8; }
+        .report-text { background: #101217; border: 1px solid #2a2e3d; border-radius: 10px; padding: 12px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; margin-bottom: 12px; }
+        .report-table-wrap { overflow-x: auto; }
+        .report-note { font-size: 10px; color: #a0a6b8; margin-top: 8px; font-style: italic; }
+
+        @media print {
+            body { background: #ffffff !important; padding: 0; display: block; }
+            .dashboard-container { border: none; box-shadow: none; max-width: none; padding: 0; background: #ffffff; }
+            .dashboard-container > *:not(.report-section) { display: none !important; }
+            .report-section { border: none; margin: 0; padding: 0; }
+            .report-section > .section-title, .report-controls, .report-actions, .report-note { display: none !important; }
+            .report-section, .report-section * { color: #000000 !important; background: #ffffff !important; border-color: #999999 !important; }
+            .report-table-wrap { overflow: visible; }
+            .report-section table { min-width: 0; font-size: 11px; }
+            .report-tile { break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
@@ -160,6 +187,31 @@
             </div>
         </div>
 
+        <!-- RELATÓRIO MENSAL -->
+        <div class="report-section" id="reportSection">
+            <div class="section-title">📈 Relatório Mensal de Atendimentos</div>
+            <div class="report-controls">
+                <div>
+                    <label for="reportMonth">Mês:</label>
+                    <select id="reportMonth"></select>
+                </div>
+                <div>
+                    <label for="reportYear">Ano:</label>
+                    <select id="reportYear"></select>
+                </div>
+                <button class="btn btn-gold" onclick="generateReport()">📈 Gerar Relatório do Mês</button>
+            </div>
+            <div id="reportOutput" style="display: none;">
+                <div class="btn-group report-actions">
+                    <button class="btn btn-excel" onclick="exportReportExcel()">📊 Baixar Excel</button>
+                    <button class="btn btn-cyan" onclick="printReport()">🖨️ Imprimir</button>
+                    <button class="btn btn-green" onclick="sendReportWhatsApp()">📲 Enviar pelo WhatsApp</button>
+                </div>
+                <div id="reportBody"></div>
+                <div class="report-note">O relatório conta cada lançamento de pontos como um atendimento. Clientes novas, resgates e vencimentos passam a ser registrados a partir desta versão do painel.</div>
+            </div>
+        </div>
+
         <div class="table-section">
             <div class="table-header-row">
                 <div class="section-title" style="margin-bottom: 0;">Lista de Clientes Cadastrados</div>
@@ -217,6 +269,24 @@
             return 'EB-' + (max + 1);
         }
 
+        // ----- Dados guardados para o Relatório Mensal -----
+        // log         = todos os atendimentos (data + pontos); nunca é apagado, nem no resgate
+        // redeems     = resgates (data + pontos resgatados)
+        // expirations = vencimentos (data + pontos perdidos)
+        // createdAt   = data em que a cliente foi cadastrada pelo painel
+        function ensureReportData(c) {
+            if (!Array.isArray(c.log)) {
+                // Painel antigo: monta o registro a partir das datas de atendimento já salvas
+                const pool = (c.history || []).map(h => ({ p: h.p, d: h.d }));
+                c.log = (c.visits || []).map(d => {
+                    const i = pool.findIndex(h => h.d === d);
+                    return { d: d, p: i >= 0 ? pool.splice(i, 1)[0].p : null };
+                });
+            }
+            if (!Array.isArray(c.redeems)) c.redeems = [];
+            if (!Array.isArray(c.expirations)) c.expirations = [];
+        }
+
         function normalizeClients() {
             const seen = new Set();
             clientsList.forEach(c => {
@@ -226,6 +296,7 @@
                 c.lastUpdate = safeIsoDate(c.lastUpdate);
                 if (!Array.isArray(c.history)) c.history = c.points > 0 ? [{ p: c.points, d: c.lastUpdate }] : [];
                 if (!Array.isArray(c.visits)) c.visits = c.history.map(h => h.d);
+                ensureReportData(c);
             });
         }
         normalizeClients();
@@ -313,6 +384,8 @@
             if (getClientCardDates(c).daysLeft >= 0) return;
             if (c.points > 0 || (c.history && c.history.length > 0)) {
                 const lost = c.points;
+                ensureReportData(c);
+                c.expirations.push({ d: anyDateToIso(getClientCardDates(c).expiryFormatted) || getTodayIsoString(), p: lost });
                 c.points = 0;
                 c.history = [];
                 c.notes = ((c.notes || '') + ` [Pontos vencidos em ${getClientCardDates(c).expiryFormatted}: perdeu ${lost} pts]`).trim();
@@ -402,6 +475,8 @@
                     c.points += pts;
                     c.history.push({ p: pts, d: today });
                     c.visits.push(today);
+                    ensureReportData(c);
+                    c.log.push({ d: today, p: pts });
                 } else {
                     let remove = Math.min(c.points, -pts);
                     c.points -= remove;
@@ -410,7 +485,10 @@
                         const take = Math.min(last.p, remove);
                         last.p -= take;
                         remove -= take;
-                        if (last.p <= 0) { c.history.pop(); c.visits.pop(); }
+                        ensureReportData(c);
+                        const lastLog = c.log[c.log.length - 1];
+                        if (lastLog) lastLog.p = Math.max(0, (lastLog.p || 0) - take);
+                        if (last.p <= 0) { c.history.pop(); c.visits.pop(); c.log.pop(); }
                     }
                 }
                 renderTableAndSelect();
@@ -421,6 +499,8 @@
         function resetPoints() {
             if(clientsList.length > 0) {
                 if (!confirm("Confirmar o RESGATE desta cliente?\n\nOs pontos voltam para zero e começa um novo prazo de 60 dias.")) return;
+                ensureReportData(clientsList[currentIndex]);
+                clientsList[currentIndex].redeems.push({ d: getTodayIsoString(), p: clientsList[currentIndex].points });
                 clientsList[currentIndex].points = 0;
                 clientsList[currentIndex].history = [];
                 clientsList[currentIndex].lastUpdate = getTodayIsoString();
@@ -470,7 +550,8 @@
             const phone = prompt("WhatsApp com DDD (ex: 11988887777):") || "";
             clientsList.push({
                 id: nextClientId(), name: name.trim(), phone: phone.trim(), ref: "Direto",
-                points: 0, days: 60, lastUpdate: getTodayIsoString(), finance: "", notes: "Cadastrada pelo painel", history: [], visits: []
+                points: 0, days: 60, lastUpdate: getTodayIsoString(), finance: "", notes: "Cadastrada pelo painel", history: [], visits: [],
+                createdAt: getTodayIsoString(), log: [], redeems: [], expirations: []
             });
             renderTableAndSelect();
             selectClientByIndex(clientsList.length - 1);
@@ -516,10 +597,23 @@
             window.open(urlWhatsApp, '_blank');
         }
 
+        // Guarda/recupera listas de eventos numa célula do Excel, no formato pontos@AAAA-MM-DD;pontos@AAAA-MM-DD
+        function eventsToText(list) {
+            return (list || []).map(v => `${v.p === null || v.p === undefined ? '' : v.p}@${v.d}`).join(';');
+        }
+        function textToEvents(txt) {
+            return String(txt || '').split(';').map(s => {
+                const m = /^(\d*)@(\d{4}-\d{2}-\d{2})$/.exec(s.trim());
+                return m ? { d: m[2], p: m[1] === '' ? null : parseInt(m[1]) } : null;
+            }).filter(Boolean);
+        }
+
         function exportToExcelXLSX() {
             const dataToExport = clientsList.map(c => {
                 const dates = getClientCardDates(c);
-                return { "ID": c.id, "Nome": c.name, "WhatsApp": c.phone, "Indicada Por": c.ref, "Pontos": c.points, "Início Ciclo": dates.updatedFormatted, "Validade": dates.expiryFormatted, "Dias Restantes": dates.daysLeft, "Financeiro": c.finance, "Observações": c.notes };
+                return { "ID": c.id, "Nome": c.name, "WhatsApp": c.phone, "Indicada Por": c.ref, "Pontos": c.points, "Início Ciclo": dates.updatedFormatted, "Validade": dates.expiryFormatted, "Dias Restantes": dates.daysLeft, "Financeiro": c.finance, "Observações": c.notes,
+                    "Cadastrada em": c.createdAt ? formatDateString(c.createdAt) : "",
+                    "Atendimentos": eventsToText(c.log), "Resgates": eventsToText(c.redeems), "Vencimentos": eventsToText(c.expirations) };
             });
             const ws = XLSX.utils.json_to_sheet(dataToExport);
             const wb = XLSX.utils.book_new();
@@ -553,10 +647,17 @@
                                 points: parseInt(row["Pontos"]) || 0, days: dias, lastUpdate: inicio,
                                 finance: row["Financeiro"] || "", notes: row["Observações"] || "Importado"
                             };
+                            // Dados do relatório mensal, quando a planilha veio de um backup desta versão
+                            const extra = {};
+                            if (row["Atendimentos"] !== undefined) { extra.log = textToEvents(row["Atendimentos"]); extra.visits = extra.log.map(v => v.d); }
+                            if (row["Resgates"] !== undefined) extra.redeems = textToEvents(row["Resgates"]);
+                            if (row["Vencimentos"] !== undefined) extra.expirations = textToEvents(row["Vencimentos"]);
+                            const cadastro = anyDateToIso(row["Cadastrada em"]);
+                            if (cadastro) extra.createdAt = cadastro;
                             // Se a cliente já existe (mesmo ID), atualiza em vez de duplicar
                             const existente = row["ID"] ? clientsList.find(c => c.id === String(row["ID"])) : null;
-                            if (existente) { Object.assign(existente, dados); atualizadas++; }
-                            else { clientsList.push({ id: row["ID"] ? String(row["ID"]) : nextClientId(), ...dados, history: [], visits: [] }); novas++; }
+                            if (existente) { Object.assign(existente, dados, extra); atualizadas++; }
+                            else { clientsList.push({ id: row["ID"] ? String(row["ID"]) : nextClientId(), ...dados, history: [], visits: [], ...extra }); novas++; }
                         });
                         normalizeClients(); renderTableAndSelect(); selectClientByIndex(0);
                         alert(`Importado com sucesso!\n${novas} cliente(s) nova(s) e ${atualizadas} atualizada(s).`);
@@ -566,8 +667,249 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // ======================= RELATÓRIO MENSAL =======================
+        const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        let currentReport = null;
+
+        function cameByReferral(ref) {
+            const r = String(ref || '').trim().toLowerCase();
+            return r !== '' && r !== 'direto';
+        }
+        function shortDate(iso) { return `${iso.slice(8, 10)}/${iso.slice(5, 7)}`; }
+        function plural(n, one, many) { return `${n} ${n === 1 ? one : many}`; }
+
+        function initReportSelectors() {
+            const monthSel = document.getElementById('reportMonth');
+            const yearSel = document.getElementById('reportYear');
+            const now = new Date();
+            MONTH_NAMES.forEach((name, i) => {
+                const opt = document.createElement('option');
+                opt.value = i + 1; opt.text = name;
+                monthSel.appendChild(opt);
+            });
+            let firstYear = now.getFullYear();
+            clientsList.forEach(c => (c.log || []).forEach(v => {
+                const y = parseInt(String(v.d).slice(0, 4));
+                if (y >= 2020 && y < firstYear) firstYear = y;
+            }));
+            for (let y = now.getFullYear(); y >= firstYear; y--) {
+                const opt = document.createElement('option');
+                opt.value = y; opt.text = y;
+                yearSel.appendChild(opt);
+            }
+            monthSel.value = now.getMonth() + 1;
+            yearSel.value = now.getFullYear();
+        }
+
+        // Monta todos os números do mês escolhido (month = 1 a 12)
+        function buildMonthlyReport(year, month) {
+            const ym = `${year}-${String(month).padStart(2, '0')}`;
+            const prev = new Date(year, month - 2, 1);
+            const prevYm = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+            const inMonth = (iso, key) => String(iso || '').slice(0, 7) === key;
+
+            const rows = [];
+            let total = 0, points = 0, prevTotal = 0, prevClients = 0;
+            const redeems = [], expirations = [];
+
+            clientsList.forEach(c => {
+                const log = c.log || [];
+                const visits = log.filter(v => inMonth(v.d, ym)).sort((a, b) => a.d.localeCompare(b.d));
+                const prevCount = log.filter(v => inMonth(v.d, prevYm)).length;
+                prevTotal += prevCount;
+                if (prevCount > 0) prevClients++;
+                (c.redeems || []).filter(v => inMonth(v.d, ym)).forEach(v => redeems.push({ name: c.name, d: v.d, p: v.p }));
+                (c.expirations || []).filter(v => inMonth(v.d, ym)).forEach(v => expirations.push({ name: c.name, d: v.d, p: v.p }));
+                if (visits.length === 0) return;
+
+                const pts = visits.reduce((s, v) => s + (v.p || 0), 0);
+                total += visits.length;
+                points += pts;
+                rows.push({
+                    id: c.id, name: c.name, phone: c.phone || '',
+                    referred: cameByReferral(c.ref), ref: cameByReferral(c.ref) ? String(c.ref).trim() : 'Direto',
+                    count: visits.length, days: visits.map(v => shortDate(v.d)), points: pts,
+                    isNew: inMonth(c.createdAt, ym)
+                });
+            });
+            rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'pt-BR'));
+
+            const newClients = clientsList.filter(c => inMonth(c.createdAt, ym));
+            return {
+                ym: ym, label: `${MONTH_NAMES[month - 1]}/${year}`,
+                prevLabel: `${MONTH_NAMES[prev.getMonth()]}/${prev.getFullYear()}`,
+                total: total, uniqueClients: rows.length,
+                average: rows.length ? total / rows.length : 0,
+                points: points, rows: rows,
+                referredRows: rows.filter(r => r.referred),
+                newClients: newClients, newReferred: newClients.filter(c => cameByReferral(c.ref)),
+                redeems: redeems, expirations: expirations,
+                prevTotal: prevTotal, prevClients: prevClients,
+                notAttended: clientsList.length - rows.length, totalClients: clientsList.length
+            };
+        }
+
+        // Texto do relatório. bold = '*' para o WhatsApp ou '' para o painel. maxClients limita a lista (0 = todas).
+        function reportToText(rep, bold, maxClients) {
+            const b = (t) => `${bold}${t}${bold}`;
+            const diff = rep.total - rep.prevTotal;
+            const trend = diff > 0 ? `↑ ${diff} a mais` : (diff < 0 ? `↓ ${Math.abs(diff)} a menos` : 'igual');
+            const lines = [];
+            lines.push(`📊 ${b('Relatório Mensal - Designer Estilo Mary')}`);
+            lines.push(`Mês: ${b(rep.label)}`);
+            lines.push('');
+            lines.push(`✅ Atendimentos no mês: ${b(rep.total)}`);
+            lines.push(`👥 Clientes atendidas: ${b(rep.uniqueClients)}`);
+            lines.push(`📈 Média por cliente: ${b(rep.average.toFixed(1).replace('.', ','))}`);
+            lines.push(`⭐ Pontos lançados: ${b(rep.points)}`);
+            lines.push(`🤝 Vieram por indicação: ${b(rep.referredRows.length)} de ${rep.uniqueClients} (direto: ${rep.uniqueClients - rep.referredRows.length})`);
+            lines.push(`🆕 Clientes novas no mês: ${b(rep.newClients.length)}` + (rep.newClients.length ? ` (${rep.newReferred.length} por indicação)` : ''));
+            lines.push(`🎁 Resgates: ${b(rep.redeems.length)}`);
+            lines.push(`⌛ Cartões vencidos: ${b(rep.expirations.length)}`);
+            lines.push(`💤 Clientes que não vieram no mês: ${b(rep.notAttended)} de ${rep.totalClients}`);
+            lines.push(`📅 ${rep.prevLabel}: ${plural(rep.prevTotal, 'atendimento', 'atendimentos')} (${trend})`);
+
+            if (rep.rows.length > 0) {
+                lines.push('');
+                lines.push(b('Atendimentos por cliente:'));
+                const shown = maxClients ? rep.rows.slice(0, maxClients) : rep.rows;
+                shown.forEach((r, i) => lines.push(`${i + 1}. ${r.name} - ${r.count}x (${r.days.join(', ')})`));
+                if (shown.length < rep.rows.length) lines.push(`... e mais ${plural(rep.rows.length - shown.length, 'cliente', 'clientes')} (lista completa no Excel)`);
+            } else {
+                lines.push('');
+                lines.push('Nenhum atendimento registrado neste mês.');
+            }
+            if (rep.referredRows.length > 0) {
+                lines.push('');
+                lines.push(b('Vieram por indicação:'));
+                rep.referredRows.forEach(r => lines.push(`- ${r.name} (indicada por ${r.ref})`));
+            }
+            if (rep.newClients.length > 0) {
+                lines.push('');
+                lines.push(b('Clientes novas:'));
+                rep.newClients.forEach(c => lines.push(`- ${c.name}` + (cameByReferral(c.ref) ? ` (indicada por ${String(c.ref).trim()})` : '')));
+            }
+            if (rep.redeems.length > 0) {
+                lines.push('');
+                lines.push(b('Resgates:'));
+                rep.redeems.forEach(v => lines.push(`- ${v.name} em ${shortDate(v.d)} (${plural(v.p || 0, 'ponto', 'pontos')})`));
+            }
+            if (rep.expirations.length > 0) {
+                lines.push('');
+                lines.push(b('Cartões vencidos:'));
+                rep.expirations.forEach(v => lines.push(`- ${v.name} em ${shortDate(v.d)} (perdeu ${plural(v.p || 0, 'ponto', 'pontos')})`));
+            }
+            return lines.join('\n');
+        }
+
+        // Cria elementos com textContent (nomes de clientes nunca viram HTML)
+        function reportEl(tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined) e.textContent = text;
+            return e;
+        }
+
+        function generateReport() {
+            const year = parseInt(document.getElementById('reportYear').value);
+            const month = parseInt(document.getElementById('reportMonth').value);
+            const rep = buildMonthlyReport(year, month);
+            currentReport = rep;
+
+            const body = document.getElementById('reportBody');
+            body.innerHTML = '';
+            body.appendChild(reportEl('div', 'report-title', `Relatório de ${rep.label} - Designer Estilo Mary`));
+
+            const tiles = reportEl('div', 'report-tiles');
+            [
+                [rep.total, 'Atendimentos no mês'],
+                [rep.uniqueClients, 'Clientes atendidas'],
+                [rep.referredRows.length, 'Vieram por indicação'],
+                [rep.newClients.length, 'Clientes novas'],
+                [rep.points, 'Pontos lançados'],
+                [rep.redeems.length, 'Resgates'],
+                [rep.expirations.length, 'Cartões vencidos'],
+                [rep.prevTotal, `Atendimentos em ${rep.prevLabel}`]
+            ].forEach(([value, label]) => {
+                const tile = reportEl('div', 'report-tile');
+                tile.appendChild(reportEl('b', '', String(value)));
+                tile.appendChild(reportEl('span', '', label));
+                tiles.appendChild(tile);
+            });
+            body.appendChild(tiles);
+
+            body.appendChild(reportEl('div', 'report-text', reportToText(rep, '', 0)));
+
+            if (rep.rows.length > 0) {
+                const wrap = reportEl('div', 'report-table-wrap');
+                const table = reportEl('table');
+                const thead = reportEl('thead');
+                const hr = reportEl('tr');
+                ['Cliente', 'ID', 'Vezes no mês', 'Dias', 'Pontos no mês', 'Indicada por'].forEach(h => hr.appendChild(reportEl('th', '', h)));
+                thead.appendChild(hr); table.appendChild(thead);
+                const tbody = reportEl('tbody');
+                rep.rows.forEach(r => {
+                    const tr = reportEl('tr');
+                    [r.name + (r.isNew ? ' (nova)' : ''), r.id, `${r.count}x`, r.days.join(', '), String(r.points), r.ref].forEach(v => tr.appendChild(reportEl('td', '', v)));
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody); wrap.appendChild(table); body.appendChild(wrap);
+            }
+
+            document.getElementById('reportOutput').style.display = 'block';
+            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function exportReportExcel() {
+            if (!currentReport) { alert("Gere o relatório primeiro."); return; }
+            const rep = currentReport;
+            const resumo = [
+                { "Indicador": "Mês", "Valor": rep.label },
+                { "Indicador": "Atendimentos no mês", "Valor": rep.total },
+                { "Indicador": "Clientes atendidas", "Valor": rep.uniqueClients },
+                { "Indicador": "Média de atendimentos por cliente", "Valor": Number(rep.average.toFixed(1)) },
+                { "Indicador": "Pontos lançados", "Valor": rep.points },
+                { "Indicador": "Vieram por indicação", "Valor": rep.referredRows.length },
+                { "Indicador": "Vieram direto", "Valor": rep.uniqueClients - rep.referredRows.length },
+                { "Indicador": "Clientes novas no mês", "Valor": rep.newClients.length },
+                { "Indicador": "Clientes novas por indicação", "Valor": rep.newReferred.length },
+                { "Indicador": "Resgates", "Valor": rep.redeems.length },
+                { "Indicador": "Cartões vencidos", "Valor": rep.expirations.length },
+                { "Indicador": "Clientes que não vieram no mês", "Valor": rep.notAttended },
+                { "Indicador": `Atendimentos em ${rep.prevLabel}`, "Valor": rep.prevTotal },
+                { "Indicador": `Clientes atendidas em ${rep.prevLabel}`, "Valor": rep.prevClients }
+            ];
+            const clientes = rep.rows.map(r => ({
+                "ID": r.id, "Nome": r.name, "WhatsApp": r.phone, "Vezes no mês": r.count, "Dias": r.days.join(', '),
+                "Pontos no mês": r.points, "Indicada por": r.ref, "Cliente nova": r.isNew ? "Sim" : "Não"
+            }));
+            const eventos = []
+                .concat(rep.redeems.map(v => ({ "Tipo": "Resgate", "Cliente": v.name, "Data": formatDateString(v.d), "Pontos": v.p || 0 })))
+                .concat(rep.expirations.map(v => ({ "Tipo": "Vencimento", "Cliente": v.name, "Data": formatDateString(v.d), "Pontos": v.p || 0 })))
+                .concat(rep.newClients.map(c => ({ "Tipo": "Cliente nova", "Cliente": c.name, "Data": formatDateString(c.createdAt), "Pontos": "" })));
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumo), "Resumo");
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clientes.length ? clientes : [{ "Nome": "Nenhum atendimento no mês" }]), "Atendimentos");
+            if (eventos.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(eventos), "Novas e Resgates");
+            XLSX.writeFile(wb, `relatorio_estilo_mary_${rep.ym}.xlsx`);
+        }
+
+        function printReport() {
+            if (!currentReport) { alert("Gere o relatório primeiro."); return; }
+            window.print();
+        }
+
+        function sendReportWhatsApp() {
+            if (!currentReport) { alert("Gere o relatório primeiro."); return; }
+            // Mensagens muito longas podem ser cortadas pelo WhatsApp: a lista por cliente vai até 40 nomes
+            const text = reportToText(currentReport, '*', 40);
+            window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(text), '_blank');
+        }
+
         renderTableAndSelect();
         selectClientByIndex(0);
+        initReportSelectors();
     </script>
 </body>
 </html>
