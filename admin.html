@@ -67,6 +67,14 @@
         .proc-chip input { width: auto; padding: 0; margin: 0; accent-color: #C71585; }
         .proc-chip:has(input:checked) { border-color: #FF69B4; background: #C7158533; font-weight: bold; }
 
+        /* ===== Aviso de pontos vencendo ===== */
+        .expiry-warning { background: #ff980018; border: 1px solid #ff9800; border-radius: 10px; padding: 12px; margin-bottom: 12px; text-align: center; font-size: 12px; color: #ffb74d; line-height: 1.6; }
+        .expiry-warning b { color: #ffd180; }
+        .expiry-names { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 8px 0; }
+        .expiry-name { background: #101217; border: 1px solid #ff9800; color: #ffd180; border-radius: 20px; padding: 6px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .expiry-name.today { border-color: #ff6b6b; color: #ff6b6b; }
+        .expiry-tip { font-size: 11px; color: #a0a6b8; }
+
         /* ===== Relatório Mensal ===== */
         .report-section { margin-top: 20px; border-top: 1px solid #232733; padding-top: 16px; }
         .report-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 4px; }
@@ -87,7 +95,7 @@
             .dashboard-container { border: none; box-shadow: none; max-width: none; padding: 0; background: #ffffff; }
             .dashboard-container > *:not(.report-section) { display: none !important; }
             .report-section { border: none; margin: 0; padding: 0; }
-            .report-section > .section-title, .report-controls, .report-actions, .report-note { display: none !important; }
+            .report-section > .section-title, .report-controls, .report-actions, .report-note, .expiry-warning { display: none !important; }
             .report-section, .report-section * { color: #000000 !important; background: #ffffff !important; border-color: #999999 !important; }
             .report-table-wrap { overflow: visible; }
             .report-section table { min-width: 0; font-size: 11px; }
@@ -207,6 +215,7 @@
         <!-- RELATÓRIO MENSAL -->
         <div class="report-section" id="reportSection">
             <div class="section-title">📈 Relatório Mensal de Atendimentos</div>
+            <div class="expiry-warning" id="expiryWarning" style="display: none;"></div>
             <div class="report-controls">
                 <div>
                     <label for="reportMonth">Mês:</label>
@@ -475,6 +484,7 @@
                 select.appendChild(opt);
             });
             document.getElementById('totalClientsCount').innerText = clientsList.length;
+            renderExpiryWarning();
             persistData();
         }
 
@@ -723,6 +733,61 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // ======================= AVISO: PONTOS VENCENDO =======================
+        const WARN_DAYS = 7;   // avisa quando faltarem 7 dias ou menos para os pontos expirarem
+
+        // Clientes com pontos que vencem em até WARN_DAYS dias (da mais urgente para a menos urgente)
+        function getExpiringClients() {
+            const list = [];
+            clientsList.forEach((c, index) => {
+                if (!(c.points > 0)) return;
+                const dates = getClientCardDates(c);
+                if (dates.daysLeft >= 0 && dates.daysLeft <= WARN_DAYS) {
+                    list.push({ index: index, name: c.name, points: c.points, daysLeft: dates.daysLeft, expiry: dates.expiryFormatted });
+                }
+            });
+            return list.sort((a, b) => a.daysLeft - b.daysLeft || a.name.localeCompare(b.name, 'pt-BR'));
+        }
+        function daysLeftLabel(d) { return d === 0 ? 'vence hoje' : `${d}d`; }
+
+        function renderExpiryWarning() {
+            const box = document.getElementById('expiryWarning');
+            if (!box) return;
+            const list = getExpiringClients();
+            box.innerHTML = '';
+            if (list.length === 0) { box.style.display = 'none'; return; }
+
+            const title = document.createElement('div');
+            const count = document.createElement('b');
+            count.textContent = list.length;
+            title.appendChild(document.createTextNode('⚠️ '));
+            title.appendChild(count);
+            title.appendChild(document.createTextNode(` cliente(s) com pontos vencendo em até ${WARN_DAYS} dias:`));
+            box.appendChild(title);
+
+            const names = document.createElement('div');
+            names.className = 'expiry-names';
+            list.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'expiry-name' + (item.daysLeft === 0 ? ' today' : '');
+                btn.textContent = `${item.name} (${daysLeftLabel(item.daysLeft)})`;
+                btn.title = `${item.points} pontos - vence em ${item.expiry}`;
+                btn.addEventListener('click', () => {
+                    selectClientByIndex(item.index);
+                    document.querySelector('.quick-preview-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+                names.appendChild(btn);
+            });
+            box.appendChild(names);
+
+            const tip = document.createElement('div');
+            tip.className = 'expiry-tip';
+            tip.textContent = 'Dica: toque no nome para abrir a cliente e enviar o cartão para lembrar de resgatar.';
+            box.appendChild(tip);
+            box.style.display = 'block';
+        }
+
         // ======================= RELATÓRIO MENSAL =======================
         const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         let currentReport = null;
@@ -807,6 +872,8 @@
             rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'pt-BR'));
 
             const newClients = clientsList.filter(c => inMonth(c.createdAt, ym));
+            // O aviso de vencimento vale para HOJE, então só entra no relatório do mês atual
+            const isCurrentMonth = ym === getTodayIsoString().slice(0, 7);
             return {
                 ym: ym, label: `${MONTH_NAMES[month - 1]}/${year}`,
                 prevLabel: `${MONTH_NAMES[prev.getMonth()]}/${prev.getFullYear()}`,
@@ -816,6 +883,7 @@
                 referredRows: rows.filter(r => r.referred),
                 newClients: newClients, newReferred: newClients.filter(c => cameByReferral(c.ref)),
                 redeems: redeems, expirations: expirations,
+                expiring: isCurrentMonth ? getExpiringClients() : [], isCurrentMonth: isCurrentMonth,
                 procedures: Object.values(procMap).sort((a, b) => b.count - a.count),
                 procTotal: procTotal, noProc: noProc,
                 prevTotal: prevTotal, prevClients: prevClients,
@@ -874,8 +942,15 @@
             lines.push(`🆕 Clientes novas no mês: ${b(rep.newClients.length)}` + (rep.newClients.length ? ` (${rep.newReferred.length} por indicação)` : ''));
             lines.push(`🎁 Resgates: ${b(rep.redeems.length)}`);
             lines.push(`⌛ Cartões vencidos: ${b(rep.expirations.length)}`);
+            if (rep.isCurrentMonth) lines.push(`⚠️ Pontos vencendo em até ${WARN_DAYS} dias: ${b(rep.expiring.length)}`);
             lines.push(`💤 Clientes que não vieram no mês: ${b(rep.notAttended)} de ${rep.totalClients}`);
             lines.push(`📅 ${rep.prevLabel}: ${plural(rep.prevTotal, 'atendimento', 'atendimentos')} (${trend})`);
+
+            if (rep.expiring.length > 0) {
+                lines.push('');
+                lines.push(b(`⚠️ Pontos vencendo em até ${WARN_DAYS} dias:`));
+                rep.expiring.forEach(e => lines.push(`- ${e.name}: ${plural(e.points, 'ponto', 'pontos')}, vence em ${e.expiry} (${e.daysLeft === 0 ? 'hoje' : plural(e.daysLeft, 'dia', 'dias')})`));
+            }
 
             if (rep.total > 0) {
                 lines.push('');
@@ -993,6 +1068,7 @@
                 [rep.points, 'Pontos lançados'],
                 [rep.redeems.length, 'Resgates'],
                 [rep.expirations.length, 'Cartões vencidos'],
+                [rep.isCurrentMonth ? rep.expiring.length : '-', `Vencendo em até ${WARN_DAYS} dias`],
                 [rep.prevTotal, `Atendimentos em ${rep.prevLabel}`]
             ].forEach(([value, label]) => {
                 const tile = reportEl('div', 'report-tile');
@@ -1039,6 +1115,7 @@
                 { "Indicador": "Clientes novas por indicação", "Valor": rep.newReferred.length },
                 { "Indicador": "Resgates", "Valor": rep.redeems.length },
                 { "Indicador": "Cartões vencidos", "Valor": rep.expirations.length },
+                { "Indicador": `Pontos vencendo em até ${WARN_DAYS} dias (hoje)`, "Valor": rep.isCurrentMonth ? rep.expiring.length : "-" },
                 { "Indicador": "Clientes que não vieram no mês", "Valor": rep.notAttended },
                 { "Indicador": `Atendimentos em ${rep.prevLabel}`, "Valor": rep.prevTotal },
                 { "Indicador": `Clientes atendidas em ${rep.prevLabel}`, "Valor": rep.prevClients }
@@ -1050,6 +1127,7 @@
             const eventos = []
                 .concat(rep.redeems.map(v => ({ "Tipo": "Resgate", "Cliente": v.name, "Data": formatDateString(v.d), "Pontos": v.p || 0 })))
                 .concat(rep.expirations.map(v => ({ "Tipo": "Vencimento", "Cliente": v.name, "Data": formatDateString(v.d), "Pontos": v.p || 0 })))
+                .concat(rep.expiring.map(e => ({ "Tipo": `Vence em até ${WARN_DAYS} dias`, "Cliente": e.name, "Data": e.expiry, "Pontos": e.points })))
                 .concat(rep.newClients.map(c => ({ "Tipo": "Cliente nova", "Cliente": c.name, "Data": formatDateString(c.createdAt), "Pontos": "" })));
 
             const wb = XLSX.utils.book_new();
