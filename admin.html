@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel da Gestão - Designer Estilo Mary</title>
+    <!-- Abrir como aplicativo na tela inicial do celular -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0A0A0A">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Designer Estilo Mary">
+    <link rel="icon" type="image/png" href="icone-192.png">
+    <link rel="apple-touch-icon" href="icone-192.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -1075,6 +1083,11 @@
         selectClientByIndex(0);
         initReportSelectors();
         buildServiceChips();
+
+        // Registro do aplicativo (necessário para instalar na tela inicial)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.log('App não registrado:', err));
+        }
     </script>
 </body>
 </html>
