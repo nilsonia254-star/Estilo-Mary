@@ -53,6 +53,12 @@
         .badge-dates { background: #00d2d322; color: #00d2d3; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #00d2d344; font-size: 10px; line-height: 1.4; display: inline-block; }
         .badge-expired { background: #ee525322; color: #ff6b6b; padding: 3px 6px; border-radius: 6px; font-weight: bold; border: 1px solid #ee525344; font-size: 10px; }
 
+        /* ===== Procedimentos do atendimento ===== */
+        .proc-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+        .proc-chip { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 7px 10px; border-radius: 20px; background: #101217; border: 1px solid #2a2e3d; color: #ffffff; font-size: 12px; cursor: pointer; }
+        .proc-chip input { width: auto; padding: 0; margin: 0; accent-color: #C71585; }
+        .proc-chip:has(input:checked) { border-color: #FF69B4; background: #C7158533; font-weight: bold; }
+
         /* ===== Relatório Mensal ===== */
         .report-section { margin-top: 20px; border-top: 1px solid #232733; padding-top: 16px; }
         .report-controls { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 4px; }
@@ -146,6 +152,9 @@
             
             <div>
                 <div class="section-title">Lançar Pontos & Validade do Cartão</div>
+                <label style="color: #FF69B4; font-weight: bold;">💅 Procedimento(s) deste atendimento:</label>
+                <div class="proc-chips" id="procChips"></div>
+
                 <label>Adicionar Pontos:</label>
                 <div class="btn-group">
                     <button class="btn btn-gold" onclick="addPoints(1)">+ 1 Ponto</button>
@@ -200,6 +209,7 @@
                     <select id="reportYear"></select>
                 </div>
                 <button class="btn btn-gold" onclick="generateReport()">📈 Gerar Relatório do Mês</button>
+                <button class="btn btn-gold" onclick="generateProcedures()">💅 Procedimentos do Mês</button>
             </div>
             <div id="reportOutput" style="display: none;">
                 <div class="btn-group report-actions">
@@ -208,7 +218,7 @@
                     <button class="btn btn-green" onclick="sendReportWhatsApp()">📲 Enviar pelo WhatsApp</button>
                 </div>
                 <div id="reportBody"></div>
-                <div class="report-note">O relatório conta cada lançamento de pontos como um atendimento. Clientes novas, resgates e vencimentos passam a ser registrados a partir desta versão do painel.</div>
+                <div class="report-note">O relatório conta cada lançamento de pontos como um atendimento. Os procedimentos só aparecem nos atendimentos lançados com o procedimento marcado; os anteriores entram como "Não informado".</div>
             </div>
         </div>
 
@@ -269,8 +279,40 @@
             return 'EB-' + (max + 1);
         }
 
+        // ----- Procedimentos (serviços) do estúdio -----
+        // Para mudar um nome, altere só o "name". Não mude o "id" de um serviço já usado: ele fica gravado nos atendimentos.
+        const SERVICES = [
+            { id: 'sob',   name: 'Design de sobrancelha' },
+            { id: 'hen',   name: 'Design com henna' },
+            { id: 'mic',   name: 'Micropigmentação' },
+            { id: 'cil',   name: 'Extensão de cílios' },
+            { id: 'along', name: 'Alongamento de unhas' },
+            { id: 'mani',  name: 'Manicure' },
+            { id: 'pedi',  name: 'Pedicure' }
+        ];
+        const serviceName = (id) => { const s = SERVICES.find(x => x.id === id); return s ? s.name : id; };
+
+        function buildServiceChips() {
+            const box = document.getElementById('procChips');
+            SERVICES.forEach(s => {
+                const label = document.createElement('label');
+                label.className = 'proc-chip';
+                const input = document.createElement('input');
+                input.type = 'checkbox'; input.value = s.id;
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(s.name));
+                box.appendChild(label);
+            });
+        }
+        function getSelectedServices() {
+            return Array.from(document.querySelectorAll('#procChips input:checked')).map(i => i.value);
+        }
+        function clearSelectedServices() {
+            document.querySelectorAll('#procChips input:checked').forEach(i => { i.checked = false; });
+        }
+
         // ----- Dados guardados para o Relatório Mensal -----
-        // log         = todos os atendimentos (data + pontos); nunca é apagado, nem no resgate
+        // log         = todos os atendimentos (data + pontos + procedimentos em "s"); nunca é apagado, nem no resgate
         // redeems     = resgates (data + pontos resgatados)
         // expirations = vencimentos (data + pontos perdidos)
         // createdAt   = data em que a cliente foi cadastrada pelo painel
@@ -469,6 +511,8 @@
                 const c = clientsList[currentIndex];
                 c.name = document.getElementById('clientName').value || c.name;
                 if (pts > 0) {
+                    const services = getSelectedServices();
+                    if (services.length === 0 && !confirm("Nenhum procedimento marcado para este atendimento.\n\nOK = lançar os pontos sem procedimento\nCancelar = voltar e marcar o procedimento")) return;
                     const today = getTodayIsoString();
                     // Regra: a data NÃO muda ao lançar pontos. Só começa um novo prazo se o cartão já tinha vencido.
                     if (getClientCardDates(c).daysLeft < 0) { expireIfNeeded(c); c.lastUpdate = today; c.days = 60; }
@@ -476,7 +520,8 @@
                     c.history.push({ p: pts, d: today });
                     c.visits.push(today);
                     ensureReportData(c);
-                    c.log.push({ d: today, p: pts });
+                    c.log.push({ d: today, p: pts, s: services });
+                    clearSelectedServices();
                 } else {
                     let remove = Math.min(c.points, -pts);
                     c.points -= remove;
@@ -597,14 +642,17 @@
             window.open(urlWhatsApp, '_blank');
         }
 
-        // Guarda/recupera listas de eventos numa célula do Excel, no formato pontos@AAAA-MM-DD;pontos@AAAA-MM-DD
+        // Guarda/recupera listas de eventos numa célula do Excel, no formato pontos@AAAA-MM-DD@servico+servico;...
         function eventsToText(list) {
-            return (list || []).map(v => `${v.p === null || v.p === undefined ? '' : v.p}@${v.d}`).join(';');
+            return (list || []).map(v => `${v.p === null || v.p === undefined ? '' : v.p}@${v.d}` + (v.s && v.s.length ? `@${v.s.join('+')}` : '')).join(';');
         }
         function textToEvents(txt) {
             return String(txt || '').split(';').map(s => {
-                const m = /^(\d*)@(\d{4}-\d{2}-\d{2})$/.exec(s.trim());
-                return m ? { d: m[2], p: m[1] === '' ? null : parseInt(m[1]) } : null;
+                const m = /^(\d*)@(\d{4}-\d{2}-\d{2})(?:@([a-z+]*))?$/.exec(s.trim());
+                if (!m) return null;
+                const ev = { d: m[2], p: m[1] === '' ? null : parseInt(m[1]) };
+                if (m[3]) ev.s = m[3].split('+').filter(Boolean);
+                return ev;
             }).filter(Boolean);
         }
 
@@ -670,6 +718,7 @@
         // ======================= RELATÓRIO MENSAL =======================
         const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         let currentReport = null;
+        let currentView = 'full';   // 'full' = relatório completo, 'proc' = só procedimentos
 
         function cameByReferral(ref) {
             const r = String(ref || '').trim().toLowerCase();
@@ -709,8 +758,11 @@
             const inMonth = (iso, key) => String(iso || '').slice(0, 7) === key;
 
             const rows = [];
-            let total = 0, points = 0, prevTotal = 0, prevClients = 0;
+            let total = 0, points = 0, prevTotal = 0, prevClients = 0, noProc = 0, procTotal = 0;
             const redeems = [], expirations = [];
+            // Contagem por procedimento: quantidade no mês e quantas vezes cada cliente fez
+            const procMap = {};
+            SERVICES.forEach(s => { procMap[s.id] = { id: s.id, name: s.name, count: 0, clients: {} }; });
 
             clientsList.forEach(c => {
                 const log = c.log || [];
@@ -722,6 +774,18 @@
                 (c.expirations || []).filter(v => inMonth(v.d, ym)).forEach(v => expirations.push({ name: c.name, d: v.d, p: v.p }));
                 if (visits.length === 0) return;
 
+                const clientProcs = {};
+                visits.forEach(v => {
+                    if (!v.s || v.s.length === 0) { noProc++; return; }
+                    v.s.forEach(id => {
+                        if (!procMap[id]) procMap[id] = { id: id, name: serviceName(id), count: 0, clients: {} };
+                        procMap[id].count++;
+                        procMap[id].clients[c.name] = (procMap[id].clients[c.name] || 0) + 1;
+                        clientProcs[id] = (clientProcs[id] || 0) + 1;
+                        procTotal++;
+                    });
+                });
+                const procText = Object.keys(clientProcs).map(id => serviceName(id) + (clientProcs[id] > 1 ? ` (${clientProcs[id]}x)` : '')).join(', ');
                 const pts = visits.reduce((s, v) => s + (v.p || 0), 0);
                 total += visits.length;
                 points += pts;
@@ -729,7 +793,7 @@
                     id: c.id, name: c.name, phone: c.phone || '',
                     referred: cameByReferral(c.ref), ref: cameByReferral(c.ref) ? String(c.ref).trim() : 'Direto',
                     count: visits.length, days: visits.map(v => shortDate(v.d)), points: pts,
-                    isNew: inMonth(c.createdAt, ym)
+                    isNew: inMonth(c.createdAt, ym), procs: procText || 'Não informado'
                 });
             });
             rows.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'pt-BR'));
@@ -744,9 +808,44 @@
                 referredRows: rows.filter(r => r.referred),
                 newClients: newClients, newReferred: newClients.filter(c => cameByReferral(c.ref)),
                 redeems: redeems, expirations: expirations,
+                procedures: Object.values(procMap).sort((a, b) => b.count - a.count),
+                procTotal: procTotal, noProc: noProc,
                 prevTotal: prevTotal, prevClients: prevClients,
                 notAttended: clientsList.length - rows.length, totalClients: clientsList.length
             };
+        }
+
+        // Linhas "- Procedimento: quantidade". withClients acrescenta quem fez cada um.
+        function procedureLines(rep, withClients) {
+            const out = [];
+            rep.procedures.forEach(p => {
+                let line = `- ${p.name}: ${p.count}`;
+                if (withClients && p.count > 0) {
+                    const names = Object.keys(p.clients).sort((a, b) => a.localeCompare(b, 'pt-BR')).map(n => n + (p.clients[n] > 1 ? ` ${p.clients[n]}x` : ''));
+                    const shown = names.slice(0, 15);
+                    line += ` (${shown.join(', ')}${names.length > shown.length ? ` e mais ${names.length - shown.length}` : ''})`;
+                }
+                out.push(line);
+            });
+            if (rep.noProc > 0) out.push(`- Não informado: ${plural(rep.noProc, 'atendimento', 'atendimentos')}`);
+            return out;
+        }
+
+        // Texto só dos procedimentos (botão "Procedimentos do Mês")
+        function proceduresToText(rep, bold) {
+            const b = (t) => `${bold}${t}${bold}`;
+            const lines = [];
+            lines.push(`💅 ${b('Procedimentos do Mês - Designer Estilo Mary')}`);
+            lines.push(`Mês: ${b(rep.label)}`);
+            lines.push('');
+            lines.push(`✅ Atendimentos no mês: ${b(rep.total)}`);
+            lines.push(`💅 Procedimentos realizados: ${b(rep.procTotal)}`);
+            const top = rep.procedures[0];
+            if (top && top.count > 0) lines.push(`🏆 Mais procurado: ${b(top.name)} (${top.count})`);
+            lines.push('');
+            if (rep.total === 0) lines.push('Nenhum atendimento registrado neste mês.');
+            else procedureLines(rep, true).forEach(l => lines.push(l));
+            return lines.join('\n');
         }
 
         // Texto do relatório. bold = '*' para o WhatsApp ou '' para o painel. maxClients limita a lista (0 = todas).
@@ -762,6 +861,7 @@
             lines.push(`👥 Clientes atendidas: ${b(rep.uniqueClients)}`);
             lines.push(`📈 Média por cliente: ${b(rep.average.toFixed(1).replace('.', ','))}`);
             lines.push(`⭐ Pontos lançados: ${b(rep.points)}`);
+            lines.push(`💅 Procedimentos realizados: ${b(rep.procTotal)}`);
             lines.push(`🤝 Vieram por indicação: ${b(rep.referredRows.length)} de ${rep.uniqueClients} (direto: ${rep.uniqueClients - rep.referredRows.length})`);
             lines.push(`🆕 Clientes novas no mês: ${b(rep.newClients.length)}` + (rep.newClients.length ? ` (${rep.newReferred.length} por indicação)` : ''));
             lines.push(`🎁 Resgates: ${b(rep.redeems.length)}`);
@@ -769,11 +869,17 @@
             lines.push(`💤 Clientes que não vieram no mês: ${b(rep.notAttended)} de ${rep.totalClients}`);
             lines.push(`📅 ${rep.prevLabel}: ${plural(rep.prevTotal, 'atendimento', 'atendimentos')} (${trend})`);
 
+            if (rep.total > 0) {
+                lines.push('');
+                lines.push(b('Procedimentos do mês:'));
+                procedureLines(rep, false).forEach(l => lines.push(l));
+            }
+
             if (rep.rows.length > 0) {
                 lines.push('');
                 lines.push(b('Atendimentos por cliente:'));
                 const shown = maxClients ? rep.rows.slice(0, maxClients) : rep.rows;
-                shown.forEach((r, i) => lines.push(`${i + 1}. ${r.name} - ${r.count}x (${r.days.join(', ')})`));
+                shown.forEach((r, i) => lines.push(`${i + 1}. ${r.name} - ${r.count}x (${r.days.join(', ')}) - ${r.procs}`));
                 if (shown.length < rep.rows.length) lines.push(`... e mais ${plural(rep.rows.length - shown.length, 'cliente', 'clientes')} (lista completa no Excel)`);
             } else {
                 lines.push('');
@@ -810,11 +916,60 @@
             return e;
         }
 
+        function showReportOutput() {
+            document.getElementById('reportOutput').style.display = 'block';
+            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Botão "Procedimentos do Mês": mostra só a contagem dos serviços do mês escolhido
+        function generateProcedures() {
+            const rep = buildMonthlyReport(parseInt(document.getElementById('reportYear').value), parseInt(document.getElementById('reportMonth').value));
+            currentReport = rep;
+            currentView = 'proc';
+
+            const body = document.getElementById('reportBody');
+            body.innerHTML = '';
+            body.appendChild(reportEl('div', 'report-title', `Procedimentos de ${rep.label} - Designer Estilo Mary`));
+
+            const tiles = reportEl('div', 'report-tiles');
+            rep.procedures.forEach(p => {
+                const tile = reportEl('div', 'report-tile');
+                tile.appendChild(reportEl('b', '', String(p.count)));
+                tile.appendChild(reportEl('span', '', p.name));
+                tiles.appendChild(tile);
+            });
+            if (rep.noProc > 0) {
+                const tile = reportEl('div', 'report-tile');
+                tile.appendChild(reportEl('b', '', String(rep.noProc)));
+                tile.appendChild(reportEl('span', '', 'Não informado'));
+                tiles.appendChild(tile);
+            }
+            body.appendChild(tiles);
+            body.appendChild(reportEl('div', 'report-text', proceduresToText(rep, '')));
+
+            const wrap = reportEl('div', 'report-table-wrap');
+            const table = reportEl('table');
+            const thead = reportEl('thead');
+            const hr = reportEl('tr');
+            ['Procedimento', 'Quantidade no mês', '% dos procedimentos', 'Clientes diferentes'].forEach(h => hr.appendChild(reportEl('th', '', h)));
+            thead.appendChild(hr); table.appendChild(thead);
+            const tbody = reportEl('tbody');
+            rep.procedures.forEach(p => {
+                const tr = reportEl('tr');
+                const pct = rep.procTotal ? Math.round(p.count * 100 / rep.procTotal) + '%' : '-';
+                [p.name, String(p.count), pct, String(Object.keys(p.clients).length)].forEach(v => tr.appendChild(reportEl('td', '', v)));
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody); wrap.appendChild(table); body.appendChild(wrap);
+            showReportOutput();
+        }
+
         function generateReport() {
             const year = parseInt(document.getElementById('reportYear').value);
             const month = parseInt(document.getElementById('reportMonth').value);
             const rep = buildMonthlyReport(year, month);
             currentReport = rep;
+            currentView = 'full';
 
             const body = document.getElementById('reportBody');
             body.innerHTML = '';
@@ -826,6 +981,7 @@
                 [rep.uniqueClients, 'Clientes atendidas'],
                 [rep.referredRows.length, 'Vieram por indicação'],
                 [rep.newClients.length, 'Clientes novas'],
+                [rep.procTotal, 'Procedimentos realizados'],
                 [rep.points, 'Pontos lançados'],
                 [rep.redeems.length, 'Resgates'],
                 [rep.expirations.length, 'Cartões vencidos'],
@@ -845,19 +1001,18 @@
                 const table = reportEl('table');
                 const thead = reportEl('thead');
                 const hr = reportEl('tr');
-                ['Cliente', 'ID', 'Vezes no mês', 'Dias', 'Pontos no mês', 'Indicada por'].forEach(h => hr.appendChild(reportEl('th', '', h)));
+                ['Cliente', 'ID', 'Vezes no mês', 'Dias', 'Procedimentos', 'Pontos no mês', 'Indicada por'].forEach(h => hr.appendChild(reportEl('th', '', h)));
                 thead.appendChild(hr); table.appendChild(thead);
                 const tbody = reportEl('tbody');
                 rep.rows.forEach(r => {
                     const tr = reportEl('tr');
-                    [r.name + (r.isNew ? ' (nova)' : ''), r.id, `${r.count}x`, r.days.join(', '), String(r.points), r.ref].forEach(v => tr.appendChild(reportEl('td', '', v)));
+                    [r.name + (r.isNew ? ' (nova)' : ''), r.id, `${r.count}x`, r.days.join(', '), r.procs, String(r.points), r.ref].forEach(v => tr.appendChild(reportEl('td', '', v)));
                     tbody.appendChild(tr);
                 });
                 table.appendChild(tbody); wrap.appendChild(table); body.appendChild(wrap);
             }
 
-            document.getElementById('reportOutput').style.display = 'block';
-            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showReportOutput();
         }
 
         function exportReportExcel() {
@@ -868,6 +1023,7 @@
                 { "Indicador": "Atendimentos no mês", "Valor": rep.total },
                 { "Indicador": "Clientes atendidas", "Valor": rep.uniqueClients },
                 { "Indicador": "Média de atendimentos por cliente", "Valor": Number(rep.average.toFixed(1)) },
+                { "Indicador": "Procedimentos realizados", "Valor": rep.procTotal },
                 { "Indicador": "Pontos lançados", "Valor": rep.points },
                 { "Indicador": "Vieram por indicação", "Valor": rep.referredRows.length },
                 { "Indicador": "Vieram direto", "Valor": rep.uniqueClients - rep.referredRows.length },
@@ -880,7 +1036,7 @@
                 { "Indicador": `Clientes atendidas em ${rep.prevLabel}`, "Valor": rep.prevClients }
             ];
             const clientes = rep.rows.map(r => ({
-                "ID": r.id, "Nome": r.name, "WhatsApp": r.phone, "Vezes no mês": r.count, "Dias": r.days.join(', '),
+                "ID": r.id, "Nome": r.name, "WhatsApp": r.phone, "Vezes no mês": r.count, "Dias": r.days.join(', '), "Procedimentos": r.procs,
                 "Pontos no mês": r.points, "Indicada por": r.ref, "Cliente nova": r.isNew ? "Sim" : "Não"
             }));
             const eventos = []
@@ -891,6 +1047,14 @@
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(resumo), "Resumo");
             XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(clientes.length ? clientes : [{ "Nome": "Nenhum atendimento no mês" }]), "Atendimentos");
+            const procedimentos = rep.procedures.map(p => ({
+                "Procedimento": p.name, "Quantidade no mês": p.count,
+                "% dos procedimentos": rep.procTotal ? Math.round(p.count * 100 / rep.procTotal) + '%' : '-',
+                "Clientes diferentes": Object.keys(p.clients).length,
+                "Clientes": Object.keys(p.clients).map(n => n + (p.clients[n] > 1 ? ` ${p.clients[n]}x` : '')).join(', ')
+            }));
+            if (rep.noProc > 0) procedimentos.push({ "Procedimento": "Não informado", "Quantidade no mês": rep.noProc, "% dos procedimentos": "-", "Clientes diferentes": "", "Clientes": "" });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(procedimentos), "Procedimentos");
             if (eventos.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(eventos), "Novas e Resgates");
             XLSX.writeFile(wb, `relatorio_estilo_mary_${rep.ym}.xlsx`);
         }
@@ -903,13 +1067,14 @@
         function sendReportWhatsApp() {
             if (!currentReport) { alert("Gere o relatório primeiro."); return; }
             // Mensagens muito longas podem ser cortadas pelo WhatsApp: a lista por cliente vai até 40 nomes
-            const text = reportToText(currentReport, '*', 40);
+            const text = currentView === 'proc' ? proceduresToText(currentReport, '*') : reportToText(currentReport, '*', 40);
             window.open("https://api.whatsapp.com/send?text=" + encodeURIComponent(text), '_blank');
         }
 
         renderTableAndSelect();
         selectClientByIndex(0);
         initReportSelectors();
+        buildServiceChips();
     </script>
 </body>
 </html>
